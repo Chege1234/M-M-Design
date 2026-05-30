@@ -82,7 +82,7 @@ export default function ServicesSection() {
   }, []);
 
   return (
-    <section id="services" ref={sectionRef} className="py-32 px-6 md:px-16 bg-nearblack">
+    <section id="services" ref={sectionRef} className="py-32 px-6 md:px-16 bg-mauve">
       <div className="max-w-7xl mx-auto">
         <div className="mb-20">
           <p className="font-dmsans text-gold text-xs tracking-[0.35em] uppercase mb-5">Expertise</p>
@@ -96,7 +96,7 @@ export default function ServicesSection() {
             <div
               key={service.name}
               ref={(el) => (cardRefs.current[i] = el)}
-              className="group bg-nearblack p-12 hover:bg-white/3 transition-all duration-400 border-l-2 border-transparent hover:border-gold opacity-0"
+              className="group bg-sand/40 p-12 hover:bg-cream/5 transition-all duration-400 border-l-2 border-transparent hover:border-gold opacity-0"
             >
               <div className="text-offwhite/30 group-hover:text-gold transition-colors duration-400 mb-8">
                 {service.icon}

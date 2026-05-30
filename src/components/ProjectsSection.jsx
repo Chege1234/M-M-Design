@@ -60,9 +60,9 @@ export default function ProjectsSection() {
   }, [filtered]);
 
   return (
-    <section id="projects" ref={sectionRef} className="py-32 px-6 md:px-16 bg-nearblack">
+    <section id="projects" ref={sectionRef} className="py-32 px-6 md:px-16 bg-mauve">
       <div className="max-w-7xl mx-auto">
-        <div ref={headingRef} className="mb-16 opacity-0">
+        <div ref={headingRef} className="mb-16">
           <p className="font-dmsans text-gold text-xs tracking-[0.35em] uppercase mb-5">Selected Work</p>
           <h2 className="font-cormorant text-offwhite font-light mb-6" style={{ fontSize: 'clamp(2.5rem, 5vw, 5rem)' }}>
             Our Projects

@@ -6,36 +6,31 @@
 
 @layer base {
   :root {
-    --background: 0 0% 4%;
-    --foreground: 40 20% 94%;
-    --card: 0 0% 7%;
-    --card-foreground: 40 20% 94%;
-    --popover: 0 0% 7%;
-    --popover-foreground: 40 20% 94%;
-    --primary: 40 55% 54%;
-    --primary-foreground: 0 0% 4%;
-    --secondary: 0 0% 10%;
-    --secondary-foreground: 40 20% 94%;
-    --muted: 0 0% 12%;
-    --muted-foreground: 0 0% 55%;
-    --accent: 40 55% 54%;
-    --accent-foreground: 0 0% 4%;
+    --background: 30 12% 60%;
+    --foreground: 48 33% 96%;
+    --card: 312 14% 71%;
+    --card-foreground: 48 33% 96%;
+    --popover: 312 14% 71%;
+    --popover-foreground: 48 33% 96%;
+    --primary: 30 22% 45%;
+    --primary-foreground: 48 33% 96%;
+    --secondary: 312 14% 71%;
+    --secondary-foreground: 48 33% 96%;
+    --muted: 30 12% 55%;
+    --muted-foreground: 48 20% 88%;
+    --accent: 30 22% 45%;
+    --accent-foreground: 48 33% 96%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 16%;
-    --input: 0 0% 16%;
-    --ring: 40 55% 54%;
+    --border: 48 20% 88%;
+    --input: 48 20% 88%;
+    --ring: 30 22% 45%;
     --radius: 0rem;
     --font-cormorant: 'Cormorant Garamond', Georgia, serif;
     --font-dmsans: 'DM Sans', system-ui, sans-serif;
-    --sidebar-background: 0 0% 4%;
-    --sidebar-foreground: 40 20% 94%;
-    --sidebar-primary: 40 55% 54%;
-    --sidebar-primary-foreground: 0 0% 4%;
-    --sidebar-accent: 0 0% 10%;
-    --sidebar-accent-foreground: 40 20% 94%;
-    --sidebar-border: 0 0% 16%;
-    --sidebar-ring: 40 55% 54%;
+    --color-sand: #A3968D;
+    --color-mauve: #BEAABE;
+    --color-cream: #F8F7F2;
   }
 }
 
@@ -44,8 +39,9 @@ html {
 }
 
 body {
-  background-color: #0a0a0a;
-  color: #f5f0e8;
+  background: linear-gradient(165deg, #A3968D 0%, #BEAABE 45%, #A3968D 100%);
+  background-attachment: fixed;
+  color: #F8F7F2;
   font-family: var(--font-dmsans);
 }
 
@@ -54,6 +50,6 @@ body {
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply text-cream;
   }
 }

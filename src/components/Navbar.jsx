@@ -7,7 +7,6 @@ const navLinks = [
   { label: 'Work', href: '#projects' },
   { label: 'Studio', href: '#about' },
   { label: 'Services', href: '#services' },
-  { label: 'Journal', href: '#journal' },
   { label: 'Contact', href: '#contact' },
 ];
 
@@ -32,7 +31,7 @@ export default function Navbar() {
     <>
       <nav
         className={`fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-8 py-5 transition-all duration-500 ${
-          scrolled ? 'bg-nearblack/90 backdrop-blur-md border-b border-white/5' : 'bg-transparent'
+          scrolled ? 'bg-sand/90 backdrop-blur-md border-b border-cream/10' : 'bg-transparent'
         }`}
       >
         <Link to="/" className="font-cormorant text-3xl font-light text-offwhite tracking-tight">
@@ -68,7 +67,7 @@ export default function Navbar() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.4 }}
-            className="fixed inset-0 z-[100] bg-nearblack flex flex-col justify-center px-10"
+            className="fixed inset-0 z-[100] bg-mauve flex flex-col justify-center px-10"
           >
             <button
               className="absolute top-6 right-8 text-offwhite"

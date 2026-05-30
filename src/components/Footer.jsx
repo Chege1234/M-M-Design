@@ -5,7 +5,6 @@ const navLinks = [
   { label: 'Work', href: '#projects' },
   { label: 'Studio', href: '#about' },
   { label: 'Services', href: '#services' },
-  { label: 'Journal', href: '#journal' },
   { label: 'Contact', href: '#contact' },
 ];
 
@@ -17,7 +16,7 @@ export default function Footer() {
   };
 
   return (
-    <footer className="bg-nearblack border-t border-white/8">
+    <footer className="bg-mauve border-t border-cream/15">
       <div className="max-w-7xl mx-auto px-6 md:px-16 py-14">
         <div className="flex flex-col md:flex-row items-center justify-between gap-10">
           <Link to="/" className="font-cormorant text-3xl font-light text-offwhite tracking-tight">

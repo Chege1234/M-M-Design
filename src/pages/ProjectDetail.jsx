@@ -34,15 +34,15 @@ export default function ProjectDetail() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-nearblack flex items-center justify-center">
-        <div className="w-8 h-8 border-4 border-white/10 border-t-gold rounded-full animate-spin" />
+      <div className="min-h-screen bg-sand flex items-center justify-center">
+        <div className="w-8 h-8 border-4 border-cream/20 border-t-gold rounded-full animate-spin" />
       </div>
     );
   }
 
   if (!project) {
     return (
-      <div className="min-h-screen bg-nearblack flex items-center justify-center">
+      <div className="min-h-screen bg-sand flex items-center justify-center">
         <div className="text-center">
           <p className="font-cormorant text-offwhite text-4xl font-light mb-6">Project Not Found</p>
           <Link to="/" className="font-dmsans text-gold text-xs tracking-widest uppercase underline">
@@ -54,9 +54,9 @@ export default function ProjectDetail() {
   }
 
   return (
-    <main className="min-h-screen bg-nearblack text-offwhite">
+    <main className="min-h-screen bg-sand text-cream">
       {/* Top bar */}
-      <div className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-8 py-5 bg-nearblack/90 backdrop-blur-md border-b border-white/5">
+      <div className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-8 py-5 bg-sand/90 backdrop-blur-md border-b border-cream/10">
         <Link to="/" className="font-cormorant text-3xl font-light text-offwhite tracking-tight">
           M&amp;M
         </Link>
@@ -76,7 +76,7 @@ export default function ProjectDetail() {
           alt={project.name}
           className="w-full h-full object-cover"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-nearblack via-transparent to-black/30" />
+        <div className="absolute inset-0 bg-gradient-to-t from-sand via-transparent to-mauve/40" />
         <div className="absolute bottom-0 left-0 right-0 px-8 md:px-16 pb-14">
           <div className="max-w-7xl mx-auto">
             <p className="font-dmsans text-gold text-xs tracking-[0.35em] uppercase mb-4">

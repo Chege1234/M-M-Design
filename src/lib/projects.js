@@ -3,20 +3,48 @@ import { categories, projects as fallbackProjects } from '@/data/projects-fallba
 
 export { categories };
 
+export function slugify(name) {
+  return name
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/(^-|-$)/g, '');
+}
+
 export function mapProjectRow(row) {
   return {
+    id: row.id,
     slug: row.slug,
     name: row.name,
     category: row.category,
     location: row.location,
     year: row.year,
-    area: row.area,
-    status: row.status,
+    area: row.area ?? '',
+    status: row.status ?? '',
     image: row.image,
     gallery: Array.isArray(row.gallery) ? row.gallery : [],
     description: row.description,
     challenge: row.challenge,
     outcome: row.outcome,
+    sort_order: row.sort_order ?? 0,
+  };
+}
+
+function rowFromProject(project, sortOrder) {
+  return {
+    slug: project.slug,
+    name: project.name,
+    category: project.category,
+    location: project.location,
+    year: project.year,
+    area: project.area || null,
+    status: project.status || null,
+    image: project.image,
+    gallery: project.gallery ?? [],
+    description: project.description,
+    challenge: project.challenge,
+    outcome: project.outcome,
+    sort_order: sortOrder ?? project.sort_order ?? 0,
   };
 }
 
@@ -53,6 +81,32 @@ export async function fetchProjectBySlug(slug) {
   }
 
   return mapProjectRow(data);
+}
+
+export async function createProject(project, sortOrder = 0) {
+  const { data, error } = await supabase
+    .from('projects')
+    .insert(rowFromProject(project, sortOrder))
+    .select()
+    .single();
+  if (error) throw error;
+  return mapProjectRow(data);
+}
+
+export async function updateProject(slug, project) {
+  const { data, error } = await supabase
+    .from('projects')
+    .update(rowFromProject(project, project.sort_order))
+    .eq('slug', slug)
+    .select()
+    .single();
+  if (error) throw error;
+  return mapProjectRow(data);
+}
+
+export async function deleteProject(slug) {
+  const { error } = await supabase.from('projects').delete().eq('slug', slug);
+  if (error) throw error;
 }
 
 export async function submitContactInquiry({ name, email, type, message }) {

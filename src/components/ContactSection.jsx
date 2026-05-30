@@ -34,7 +34,7 @@ export default function ContactSection() {
   };
 
   return (
-    <section id="contact" className="py-32 px-6 md:px-16 bg-[#0d0d0d]">
+    <section id="contact" className="py-32 px-6 md:px-16 bg-sand">
       <div className="max-w-7xl mx-auto">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-20 lg:gap-32">
           {/* Left */}
@@ -122,11 +122,11 @@ export default function ContactSection() {
                       value={form.type}
                       onChange={handleChange}
                       required
-                      className="w-full bg-nearblack border-b border-white/15 py-3 font-dmsans text-offwhite text-sm focus:outline-none focus:border-gold transition-colors duration-300"
+                      className="w-full bg-mauve/30 border-b border-cream/20 py-3 font-dmsans text-cream text-sm focus:outline-none focus:border-gold transition-colors duration-300"
                     >
                       <option value="" disabled>Select type</option>
                       {projectTypes.map(t => (
-                        <option key={t} value={t} className="bg-nearblack">{t}</option>
+                        <option key={t} value={t} className="bg-sand">{t}</option>
                       ))}
                     </select>
                   </div>
@@ -149,7 +149,7 @@ export default function ContactSection() {
                   <button
                     type="submit"
                     disabled={loading}
-                    className="mt-4 w-full bg-gold text-nearblack font-dmsans text-xs tracking-[0.3em] uppercase py-4 hover:bg-gold/85 transition-colors duration-300 disabled:opacity-60"
+                    className="mt-4 w-full bg-gold text-cream font-dmsans text-xs tracking-[0.3em] uppercase py-4 hover:bg-gold/85 transition-colors duration-300 disabled:opacity-60"
                   >
                     {loading ? 'Sending...' : 'Send Message'}
                   </button>

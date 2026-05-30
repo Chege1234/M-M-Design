@@ -2,8 +2,8 @@ import { useEffect, useRef } from 'react';
 import HeroCanvas from './HeroCanvas';
 import gsap from 'gsap';
 
-const CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-const WORDS = ['We', 'Build', 'What', 'Others', 'Only', 'Imagine'];
+
+const WORDS = ['M', '&amp', 'M', 'Design', 'Group', ' —', 'Architecture', '&amp', 'Urban', 'Design'];
 
 export default function HeroSection() {
   const contentRef = useRef(null);
@@ -13,9 +13,9 @@ export default function HeroSection() {
     const ctx = gsap.context(() => {
       const children = contentRef.current?.children;
       if (children) {
-        gsap.set(children, { opacity: 0, y: 35 });
-        gsap.to(children, {
-          opacity: 1, y: 0,
+        gsap.from(children, {
+          opacity: 0,
+          y: 35,
           stagger: 0.14,
           delay: 0.3,
           duration: 1.3,
@@ -55,13 +55,13 @@ export default function HeroSection() {
   };
 
   return (
-    <section className="relative h-screen w-full flex items-center justify-center overflow-hidden bg-nearblack">
+    <section className="relative h-screen w-full flex items-center justify-center overflow-hidden bg-sand">
       <HeroCanvas />
-      <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/40 to-black/80" />
+      <div className="absolute inset-0 bg-gradient-to-b from-sand/85 via-mauve/50 to-sand/90" />
 
       <div ref={contentRef} className="relative z-10 text-center px-6 max-w-6xl mx-auto">
         <p className="font-dmsans text-gold text-xs tracking-[0.45em] uppercase mb-8">
-          Est. 2010 · Johannesburg
+          Est. 2022 · Cyprus
         </p>
 
         <h1
@@ -81,7 +81,7 @@ export default function HeroSection() {
         </h1>
 
         <p className="font-dmsans text-offwhite/50 text-xs md:text-sm tracking-[0.3em] uppercase mb-12">
-          M&amp;M Design Group — Architecture &amp; Urban Design
+          We build what others only imagine
         </p>
 
         <div className="flex flex-col sm:flex-row items-center justify-center gap-6 sm:gap-10">
