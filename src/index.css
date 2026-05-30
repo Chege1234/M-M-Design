@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,500&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Inter:wght@300;400;500;600&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -6,31 +6,28 @@
 
 @layer base {
   :root {
-    --background: 30 12% 60%;
-    --foreground: 48 33% 96%;
-    --card: 312 14% 71%;
-    --card-foreground: 48 33% 96%;
-    --popover: 312 14% 71%;
-    --popover-foreground: 48 33% 96%;
-    --primary: 30 22% 45%;
-    --primary-foreground: 48 33% 96%;
-    --secondary: 312 14% 71%;
-    --secondary-foreground: 48 33% 96%;
-    --muted: 30 12% 55%;
-    --muted-foreground: 48 20% 88%;
-    --accent: 30 22% 45%;
-    --accent-foreground: 48 33% 96%;
+    --background: 30 8% 4%;
+    --foreground: 40 14% 93%;
+    --card: 30 6% 12%;
+    --card-foreground: 40 14% 93%;
+    --popover: 30 6% 12%;
+    --popover-foreground: 40 14% 93%;
+    --primary: 32 48% 64%;
+    --primary-foreground: 30 8% 4%;
+    --secondary: 30 5% 14%;
+    --secondary-foreground: 40 14% 93%;
+    --muted: 30 4% 18%;
+    --muted-foreground: 35 5% 58%;
+    --accent: 32 48% 64%;
+    --accent-foreground: 30 8% 4%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
-    --border: 48 20% 88%;
-    --input: 48 20% 88%;
-    --ring: 30 22% 45%;
-    --radius: 0rem;
-    --font-cormorant: 'Cormorant Garamond', Georgia, serif;
-    --font-dmsans: 'DM Sans', system-ui, sans-serif;
-    --color-sand: #A3968D;
-    --color-mauve: #BEAABE;
-    --color-cream: #F8F7F2;
+    --border: 40 10% 22%;
+    --input: 40 10% 22%;
+    --ring: 32 48% 64%;
+    --radius: 0px;
+    --font-display: 'Libre Baskerville', Georgia, serif;
+    --font-body: 'Inter', system-ui, sans-serif;
   }
 }
 
@@ -39,17 +36,28 @@ html {
 }
 
 body {
-  background: linear-gradient(165deg, #A3968D 0%, #BEAABE 45%, #A3968D 100%);
-  background-attachment: fixed;
-  color: #F8F7F2;
-  font-family: var(--font-dmsans);
+  background-color: #0c0b0a;
+  color: #eeebe6;
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: rgba(212, 165, 116, 0.35);
+  color: #fff;
 }
 
 @layer base {
   * {
     @apply border-border;
   }
-  body {
-    @apply text-cream;
+}
+
+@layer utilities {
+  .section-label {
+    @apply font-body text-[0.65rem] tracking-[0.35em] uppercase text-bronze;
+  }
+  .section-title {
+    @apply font-display font-normal text-linen leading-[1.05];
   }
 }

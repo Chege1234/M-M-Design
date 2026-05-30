@@ -13,14 +13,14 @@ export default class ErrorBoundary extends React.Component {
   render() {
     if (this.state.error) {
       return (
-        <div className="min-h-screen bg-sand text-cream flex items-center justify-center p-8">
+        <div className="min-h-screen bg-ink text-linen flex items-center justify-center p-8">
           <div className="max-w-md text-center space-y-4">
-            <h1 className="font-serif text-2xl">Something went wrong</h1>
-            <p className="text-sm text-white/60">{this.state.error.message}</p>
+            <h1 className="font-display text-2xl">Something went wrong</h1>
+            <p className="font-body text-stone text-sm">{this.state.error.message}</p>
             <button
               type="button"
               onClick={() => window.location.reload()}
-              className="text-sm text-[#c9a84c] underline"
+              className="font-body text-bronze text-sm underline"
             >
               Reload page
             </button>

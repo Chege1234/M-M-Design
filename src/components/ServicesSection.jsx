@@ -82,29 +82,29 @@ export default function ServicesSection() {
   }, []);
 
   return (
-    <section id="services" ref={sectionRef} className="py-32 px-6 md:px-16 bg-mauve">
-      <div className="max-w-7xl mx-auto">
-        <div className="mb-20">
-          <p className="font-dmsans text-gold text-xs tracking-[0.35em] uppercase mb-5">Expertise</p>
-          <h2 className="font-cormorant text-offwhite font-light" style={{ fontSize: 'clamp(2.5rem, 5vw, 5rem)' }}>
-            What We Do
+    <section id="services" ref={sectionRef} className="py-28 md:py-36 bg-slate border-t border-linen/8">
+      <div className="max-w-7xl mx-auto px-6 md:px-16">
+        <div className="mb-16 md:mb-20">
+          <p className="section-label mb-4">Expertise</p>
+          <h2 className="section-title" style={{ fontSize: 'clamp(2rem, 4.5vw, 3.75rem)' }}>
+            What we do
           </h2>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-px bg-white/8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-px bg-linen/10">
           {services.map((service, i) => (
             <div
               key={service.name}
               ref={(el) => (cardRefs.current[i] = el)}
-              className="group bg-sand/40 p-12 hover:bg-cream/5 transition-all duration-400 border-l-2 border-transparent hover:border-gold opacity-0"
+              className="group bg-panel p-10 md:p-12 hover:bg-panel/80 transition-all duration-400 border-l-2 border-transparent hover:border-bronze opacity-0"
             >
-              <div className="text-offwhite/30 group-hover:text-gold transition-colors duration-400 mb-8">
+              <div className="text-stone group-hover:text-bronze transition-colors duration-400 mb-8">
                 {service.icon}
               </div>
-              <h3 className="font-cormorant text-offwhite text-3xl font-light mb-5 group-hover:text-gold transition-colors duration-400">
+              <h3 className="font-display text-linen text-2xl md:text-3xl mb-4 group-hover:text-bronze transition-colors duration-400">
                 {service.name}
               </h3>
-              <p className="font-dmsans text-offwhite/45 text-sm leading-relaxed">
+              <p className="font-body text-stone text-sm leading-relaxed">
                 {service.description}
               </p>
             </div>

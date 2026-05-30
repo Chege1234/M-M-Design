@@ -6,7 +6,7 @@ const HOVER_SELECTOR = 'a, button, .project-card, nav a, nav button';
 const circleStyle = {
   width: 16,
   height: 16,
-  border: '1.5px solid #B8933F',
+  border: '1.5px solid #D4A574',
   background: 'transparent',
   borderRadius: '50%',
   position: 'fixed',

@@ -1,110 +1,91 @@
 import { useEffect, useRef } from 'react';
-import HeroCanvas from './HeroCanvas';
-import gsap from 'gsap';
+import { motion } from 'framer-motion';
 
-const CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-const WORDS = ['M', '&', 'M', 'Design', 'Group', ' —', 'Architecture', '&', 'Urban', 'Design'];
+const HERO_IMAGE =
+  'https://images.unsplash.com/photo-1487958449943-2429e8be8625?w=1920&q=80';
 
 export default function HeroSection() {
   const contentRef = useRef(null);
-  const headlineRef = useRef(null);
 
   useEffect(() => {
-    const ctx = gsap.context(() => {
-      const children = contentRef.current?.children;
-      if (children) {
-        gsap.from(children, {
-          opacity: 0,
-          y: 35,
-          stagger: 0.14,
-          delay: 0.3,
-          duration: 1.3,
-          ease: 'power3.out',
-        });
-      }
-
-      const wordEls = headlineRef.current?.querySelectorAll('[data-word]');
-      if (wordEls) {
-        wordEls.forEach((el, wi) => {
-          const final = el.getAttribute('data-word');
-          let frame = 0;
-          const totalFrames = 20;
-          setTimeout(() => {
-            const iv = setInterval(() => {
-              frame++;
-              const revealed = Math.floor((frame / totalFrames) * final.length);
-              el.textContent = final.split('').map((ch, i) =>
-                i < revealed ? ch : CHARS[Math.floor(Math.random() * CHARS.length)]
-              ).join('');
-              if (frame >= totalFrames) {
-                el.textContent = final;
-                clearInterval(iv);
-              }
-            }, 55);
-          }, wi * 360);
-        });
-      }
+    const els = contentRef.current?.querySelectorAll('[data-animate]');
+    els?.forEach((el, i) => {
+      el.style.animationDelay = `${0.15 + i * 0.12}s`;
     });
-
-    return () => ctx.revert();
   }, []);
 
   const handleNavClick = (href) => {
-    const el = document.querySelector(href);
-    if (el) el.scrollIntoView({ behavior: 'smooth' });
+    document.querySelector(href)?.scrollIntoView({ behavior: 'smooth' });
   };
 
   return (
-    <section className="relative h-screen w-full flex items-center justify-center overflow-hidden bg-sand">
-      <HeroCanvas />
-      <div className="absolute inset-0 bg-gradient-to-b from-sand/85 via-mauve/50 to-sand/90" />
-
-      <div ref={contentRef} className="relative z-10 text-center px-6 max-w-6xl mx-auto">
-        <p className="font-dmsans text-gold text-xs tracking-[0.45em] uppercase mb-8">
-          Est. 2022 · Cyprus
-        </p>
-
-        <h1
-          ref={headlineRef}
-          className="font-cormorant font-light text-offwhite leading-none mb-6"
-          style={{ fontSize: 'clamp(3rem, 8vw, 8rem)' }}
-        >
-          {WORDS.map((word, i) => (
-            <span
-              key={i}
-              data-word={word}
-              className="inline-block mr-[0.25em] last:mr-0"
-            >
-              {word}
-            </span>
-          ))}
-        </h1>
-
-        <p className="font-dmsans text-offwhite/50 text-xs md:text-sm tracking-[0.3em] uppercase mb-12">
-          We build what others only imagine
-        </p>
-
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-6 sm:gap-10">
-          <button
-            onClick={() => handleNavClick('#projects')}
-            className="border border-offwhite/30 text-offwhite px-10 py-3.5 text-xs tracking-[0.25em] uppercase font-dmsans hover:border-gold hover:text-gold transition-all duration-400"
-          >
-            View Our Work
-          </button>
-          <button
-            onClick={() => handleNavClick('#contact')}
-            className="text-offwhite/50 text-xs tracking-[0.25em] uppercase font-dmsans hover:text-gold transition-colors duration-300 underline underline-offset-4 decoration-offwhite/20"
-          >
-            Get In Touch
-          </button>
-        </div>
+    <section className="relative min-h-screen flex items-end overflow-hidden bg-ink">
+      <div className="absolute inset-0">
+        <img
+          src={HERO_IMAGE}
+          alt=""
+          className="h-full w-full object-cover opacity-50 grayscale-[20%]"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-ink via-ink/75 to-ink/30" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_30%_20%,rgba(212,165,116,0.08),transparent_55%)]" />
       </div>
 
-      <div className="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-3">
-        <span className="font-dmsans text-offwhite/30 text-[10px] tracking-[0.3em] uppercase">Scroll</span>
-        <div className="w-px h-14 overflow-hidden">
-          <div className="w-full h-full bg-gradient-to-b from-gold to-transparent animate-bounce" />
+      <div className="relative z-10 w-full max-w-7xl mx-auto px-6 md:px-16 pb-24 md:pb-32 pt-32">
+        <div ref={contentRef} className="max-w-4xl">
+          <p
+            data-animate
+            className="section-label mb-6 opacity-0 animate-fade-up"
+          >
+            Est. 2022 · Cyprus
+          </p>
+
+          <h1
+            data-animate
+            className="section-title opacity-0 animate-fade-up mb-6"
+            style={{ fontSize: 'clamp(2.75rem, 7vw, 5.5rem)' }}
+          >
+            M&amp;M Design Group
+          </h1>
+
+          <p
+            data-animate
+            className="font-body text-stone text-sm md:text-base tracking-wide max-w-xl mb-10 opacity-0 animate-fade-up"
+          >
+            Architecture and urban design shaped with restraint — spaces that feel inevitable, not imposed.
+          </p>
+
+          <div
+            data-animate
+            className="flex flex-col sm:flex-row gap-4 sm:gap-6 opacity-0 animate-fade-up"
+          >
+            <button
+              type="button"
+              onClick={() => handleNavClick('#projects')}
+              className="bg-bronze text-ink px-8 py-3.5 text-[0.65rem] tracking-[0.28em] uppercase font-body font-medium hover:bg-bronze/90 transition-colors"
+            >
+              View our work
+            </button>
+            <button
+              type="button"
+              onClick={() => handleNavClick('#contact')}
+              className="border border-linen/25 text-linen px-8 py-3.5 text-[0.65rem] tracking-[0.28em] uppercase font-body hover:border-bronze hover:text-bronze transition-colors"
+            >
+              Get in touch
+            </button>
+          </div>
         </div>
+
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 1.2, duration: 1 }}
+          className="hidden md:flex absolute bottom-12 right-16 flex-col items-center gap-3"
+        >
+          <span className="font-body text-stone/60 text-[0.6rem] tracking-[0.35em] uppercase [writing-mode:vertical-rl] rotate-180">
+            Scroll
+          </span>
+          <div className="w-px h-16 bg-gradient-to-b from-bronze/80 to-transparent" />
+        </motion.div>
       </div>
     </section>
   );
