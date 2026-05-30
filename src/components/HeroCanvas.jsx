@@ -1,5 +1,43 @@
-import { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
+
+class HeroCanvasBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { failed: false };
+  }
+
+  static getDerivedStateFromError() {
+    return { failed: true };
+  }
+
+  render() {
+    if (this.state.failed) return <HeroCanvasFallback />;
+    return this.props.children;
+  }
+}
+
+function canUseWebGL() {
+  try {
+    const canvas = document.createElement('canvas');
+    return Boolean(
+      canvas.getContext('webgl2', { failIfMajorPerformanceCaveat: false }) ||
+        canvas.getContext('webgl', { failIfMajorPerformanceCaveat: false })
+    );
+  } catch {
+    return false;
+  }
+}
+
+function HeroCanvasFallback() {
+  return (
+    <div
+      className="absolute inset-0 w-full h-full bg-gradient-to-br from-sand via-mauve/80 to-sand"
+      style={{ zIndex: 0 }}
+      aria-hidden="true"
+    />
+  );
+}
 
 const TOTAL = 12;
 
@@ -59,15 +97,33 @@ const WINDOWS = [
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
-export default function HeroCanvas() {
+function HeroCanvasInner() {
   const mountRef = useRef(null);
+  const [useFallback, setUseFallback] = useState(() => !canUseWebGL());
 
   useEffect(() => {
+    if (useFallback) return;
+
     const mount = mountRef.current;
     if (!mount) return;
 
-    // Renderer
-    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    let renderer;
+    try {
+      renderer = new THREE.WebGLRenderer({
+        antialias: true,
+        alpha: true,
+        failIfMajorPerformanceCaveat: false,
+        powerPreference: 'low-power',
+      });
+      if (!renderer.getContext()) {
+        throw new Error('WebGL context unavailable');
+      }
+    } catch {
+      setUseFallback(true);
+      return;
+    }
+
+    // Renderer configured
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.setSize(mount.clientWidth, mount.clientHeight);
     renderer.shadowMap.enabled = true;
@@ -366,7 +422,9 @@ export default function HeroCanvas() {
       renderer.dispose();
       if (mount.contains(renderer.domElement)) mount.removeChild(renderer.domElement);
     };
-  }, []);
+  }, [useFallback]);
+
+  if (useFallback) return <HeroCanvasFallback />;
 
   return (
     <div
@@ -374,5 +432,13 @@ export default function HeroCanvas() {
       className="absolute inset-0 w-full h-full"
       style={{ zIndex: 0 }}
     />
+  );
+}
+
+export default function HeroCanvas() {
+  return (
+    <HeroCanvasBoundary>
+      <HeroCanvasInner />
+    </HeroCanvasBoundary>
   );
 }

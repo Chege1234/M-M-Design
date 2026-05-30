@@ -2,8 +2,8 @@ import { useEffect, useRef } from 'react';
 import HeroCanvas from './HeroCanvas';
 import gsap from 'gsap';
 
-
-const WORDS = ['M', '&amp', 'M', 'Design', 'Group', ' —', 'Architecture', '&amp', 'Urban', 'Design'];
+const CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+const WORDS = ['M', '&', 'M', 'Design', 'Group', ' —', 'Architecture', '&', 'Urban', 'Design'];
 
 export default function HeroSection() {
   const contentRef = useRef(null);
