@@ -26,13 +26,12 @@ export default function HeroSection() {
           loop
           muted
           playsInline
-          className="h-full w-full object-cover opacity-50 grayscale-[20%]"
+          className="h-full w-full object-cover"
           poster={HERO_IMAGE}
         >
           <source src="/hero-bg.mp4" type="video/mp4" />
         </video>
-        <div className="absolute inset-0 bg-gradient-to-t from-ink via-ink/75 to-ink/30" />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_30%_20%,rgba(212,165,116,0.08),transparent_55%)]" />
+        <div className="absolute inset-0 bg-gradient-to-t from-ink/70 via-ink/30 to-transparent" />
       </div>
 
       <div className="relative z-10 w-full max-w-7xl mx-auto px-6 md:px-16">
