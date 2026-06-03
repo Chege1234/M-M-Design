@@ -63,10 +63,10 @@ export default function ContactSection() {
               <div>
                 <p className="font-body text-stone text-[0.65rem] tracking-widest uppercase mb-2">Email</p>
                 <a
-                  href="mailto:hello@mmdesigngroup.co.za"
+                  href="mailto:madelinesavo64@gmail.com"
                   className="font-body text-linen/80 text-sm hover:text-bronze transition-colors"
                 >
-                  hello@mmdesigngroup.co.za
+                  madelinesavo64@gmail.com
                 </a>
               </div>
               <div>
