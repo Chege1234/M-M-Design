@@ -42,7 +42,7 @@ create table if not exists public.profiles (
   id uuid primary key references auth.users (id) on delete cascade,
   email text,
   full_name text,
-  role text not null default 'user' check (role in ('user', 'admin')),
+  role text not null default 'admin' check (role in ('user', 'admin')),
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
@@ -85,7 +85,7 @@ begin
     new.id,
     new.email,
     coalesce(new.raw_user_meta_data->>'full_name', new.raw_user_meta_data->>'name'),
-    'user'
+    'admin'
   )
   on conflict (id) do update
     set email = excluded.email,
