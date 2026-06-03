@@ -2,13 +2,13 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const SYSTEM_PROMPT = `CRITICAL INSTRUCTION: Every response must be 1–3 sentences maximum. Never exceed 3 sentences under any circumstance. Be concise without losing warmth or intelligence.
 
-You are the Studio Liaison for M&M Design Group, a premium boutique architecture and interior design studio. Your goal is to engage visitors, answer their design and process questions, and collect their contact details to generate a high-quality lead.
+You are Melba, the Studio Liaison for M&M Design Group, a premium boutique architecture and interior design studio. Your name is Melba. If someone asks what you are called, you must say your name is Melba. Your goal is to engage visitors, answer their design and process questions, and collect their contact details to generate a high-quality lead.
 
 M&M Design Group Info:
-- Founded: 2015 by Madeline and Michael Chege.
+- Founded: 2022 in Cyprus by Madeline.
 - Philosophy: "Material honesty, structural clarity, and spatial poetry." We do contemporary architecture, luxury residential, museums, and commercial projects.
 - Design Style: Sculptural minimalism, warm stone (travertine/terrazzo), raw woods, bronze accents, seamless indoor-outdoor flows, large glass openings.
-- Location: Offices in Johannesburg & Cape Town, South Africa.
+- Location: Nicosia, Cyprus.
 - Average project timeline: 12-24 months.
 - Budget range: Standard residential starts at R5M, boutique commercial at R15M.
 
@@ -50,6 +50,186 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+async function generateCompletion(messages: any[], init: boolean): Promise<string> {
+  const providers = [
+    // 1. Primary: Gemini 2.5 Flash
+    {
+      name: 'Gemini 2.5 Flash',
+      type: 'gemini',
+      model: 'gemini-2.5-flash',
+      apiKey: Deno.env.get('GEMINI_API_KEY'),
+    },
+    // 2. Fallback: Gemini 1.5 Flash
+    {
+      name: 'Gemini 1.5 Flash',
+      type: 'gemini',
+      model: 'gemini-1.5-flash',
+      apiKey: Deno.env.get('GEMINI_API_KEY'),
+    },
+    // 3. Fallback: Gemini 1.5 Flash 8B
+    {
+      name: 'Gemini 1.5 Flash 8B',
+      type: 'gemini',
+      model: 'gemini-1.5-flash-8b',
+      apiKey: Deno.env.get('GEMINI_API_KEY'),
+    },
+    // 4. Fallback: Groq Llama 3.3 70B
+    {
+      name: 'Groq Llama 3.3 70B',
+      type: 'openai-compatible',
+      endpoint: 'https://api.groq.com/openai/v1/chat/completions',
+      model: 'llama-3.3-70b-versatile',
+      apiKey: Deno.env.get('GROQ_API_KEY') || Deno.env.get('Groq Console'),
+    },
+    // 5. Fallback: Groq Gemma 2 9B
+    {
+      name: 'Groq Gemma 2 9B',
+      type: 'openai-compatible',
+      endpoint: 'https://api.groq.com/openai/v1/chat/completions',
+      model: 'gemma2-9b-it',
+      apiKey: Deno.env.get('GROQ_API_KEY') || Deno.env.get('Groq Console'),
+    },
+    // 6. Fallback: OpenRouter Gemma 2 9B (Free)
+    {
+      name: 'OpenRouter Gemma 2 9B Free',
+      type: 'openai-compatible',
+      endpoint: 'https://openrouter.ai/api/v1/chat/completions',
+      model: 'google/gemma-2-9b-it:free',
+      apiKey: Deno.env.get('OPENROUTER_API_KEY') || Deno.env.get('Open router'),
+    },
+    // 7. Fallback: OpenRouter Llama 3.3 70B (Free)
+    {
+      name: 'OpenRouter Llama 3.3 70B Free',
+      type: 'openai-compatible',
+      endpoint: 'https://openrouter.ai/api/v1/chat/completions',
+      model: 'meta-llama/llama-3.3-70b-instruct:free',
+      apiKey: Deno.env.get('OPENROUTER_API_KEY') || Deno.env.get('Open router'),
+    },
+    // 8. Fallback: Hugging Face Qwen 2.5 72B Instruct
+    {
+      name: 'Hugging Face Qwen 2.5 72B',
+      type: 'openai-compatible',
+      endpoint: 'https://api-inference.huggingface.co/models/Qwen/Qwen2.5-72B-Instruct/v1/chat/completions',
+      model: 'Qwen/Qwen2.5-72B-Instruct',
+      apiKey: Deno.env.get('HF_API_KEY') || Deno.env.get('HF_ACCESS_TOKEN') || Deno.env.get('Hugging face') || '',
+    }
+  ];
+
+  for (const provider of providers) {
+    // If provider requires apiKey and it's not present, skip it (except Hugging Face which can be called without a key)
+    if (!provider.apiKey && provider.name !== 'Hugging Face Qwen 2.5 72B') {
+      console.log(`Skipping ${provider.name} because API key is not configured.`);
+      continue;
+    }
+
+    try {
+      console.log(`Attempting generation with ${provider.name}...`);
+      let text = '';
+
+      if (provider.type === 'gemini') {
+        let geminiMessages;
+        if (init) {
+          geminiMessages = [
+            {
+              role: 'user',
+              parts: [{ text: 'Begin the conversation with your opening greeting.' }],
+            },
+          ];
+        } else {
+          geminiMessages = messages.map((msg: any) => ({
+            role: msg.role === 'user' ? 'user' : 'model',
+            parts: [{ text: msg.content }],
+          }));
+        }
+
+        const response = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/${provider.model}:generateContent?key=${provider.apiKey}`,
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              contents: geminiMessages,
+              systemInstruction: {
+                parts: [{ text: SYSTEM_PROMPT }],
+              },
+            }),
+          }
+        );
+
+        if (!response.ok) {
+          const errText = await response.text();
+          throw new Error(`Google API returned HTTP ${response.status}: ${errText}`);
+        }
+
+        const data = await response.json();
+        text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+
+      } else if (provider.type === 'openai-compatible') {
+        let openaiMessages;
+        if (init) {
+          openaiMessages = [
+            { role: 'system', content: SYSTEM_PROMPT },
+            { role: 'user', content: 'Begin the conversation with your opening greeting.' }
+          ];
+        } else {
+          openaiMessages = [
+            { role: 'system', content: SYSTEM_PROMPT },
+            ...messages.map((msg: any) => ({
+              role: msg.role === 'user' ? 'user' : 'assistant',
+              content: msg.content,
+            }))
+          ];
+        }
+
+        const headers: Record<string, string> = {
+          'Content-Type': 'application/json',
+        };
+        if (provider.apiKey) {
+          headers['Authorization'] = `Bearer ${provider.apiKey}`;
+        }
+        if (provider.name.includes('OpenRouter')) {
+          headers['HTTP-Referer'] = 'https://maddie-design.website';
+          headers['X-Title'] = 'M&M Design Group';
+        }
+
+        const response = await fetch(provider.endpoint!, {
+          method: 'POST',
+          headers,
+          body: JSON.stringify({
+            model: provider.model,
+            messages: openaiMessages,
+            temperature: 0.7,
+            max_tokens: 500,
+          }),
+        });
+
+        if (!response.ok) {
+          const errText = await response.text();
+          throw new Error(`${provider.name} API returned HTTP ${response.status}: ${errText}`);
+        }
+
+        const data = await response.json();
+        text = data.choices?.[0]?.message?.content || '';
+      }
+
+      text = text.trim();
+      if (!text || text === '__FALLBACK__') {
+        throw new Error(`Model returned empty or fallback response: "${text}"`);
+      }
+
+      console.log(`Successfully generated response using ${provider.name}.`);
+      return text;
+
+    } catch (err: any) {
+      console.warn(`Failed with ${provider.name}:`, err.message || err);
+    }
+  }
+
+  throw new Error('All model providers in fallback chain failed.');
+}
+
 Deno.serve(async (req) => {
   // Handle CORS preflight request
   if (req.method === 'OPTIONS') {
@@ -59,53 +239,11 @@ Deno.serve(async (req) => {
   try {
     const { messages, init } = await req.json();
 
-    const geminiApiKey = Deno.env.get('GEMINI_API_KEY');
-    if (!geminiApiKey) {
-      throw new Error('GEMINI_API_KEY is not set');
+    if (!init && (!messages || !Array.isArray(messages))) {
+      throw new Error('Invalid messages array');
     }
 
-    let geminiMessages;
-    if (init) {
-      geminiMessages = [
-        {
-          role: 'user',
-          parts: [{ text: 'Begin the conversation with your opening greeting.' }],
-        },
-      ];
-    } else {
-      if (!messages || !Array.isArray(messages)) {
-        throw new Error('Invalid messages array');
-      }
-      geminiMessages = messages.map((msg: any) => ({
-        role: msg.role === 'user' ? 'user' : 'model',
-        parts: [{ text: msg.content }],
-      }));
-    }
-
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiApiKey}`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          contents: geminiMessages,
-          systemInstruction: {
-            parts: [{ text: SYSTEM_PROMPT }],
-          },
-        }),
-      }
-    );
-
-    if (!response.ok) {
-      const errText = await response.text();
-      console.error('Gemini API error:', response.status, errText);
-      throw new Error(`Gemini API returned error code ${response.status}`);
-    }
-
-    const data = await response.json();
-    const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+    const text = await generateCompletion(messages, init);
 
     let leadSaved = false;
     const leadRegex = /<<<LEAD_RECORD>>>([\s\S]*?)<<<END_LEAD_RECORD>>>/;
@@ -183,3 +321,4 @@ Deno.serve(async (req) => {
     );
   }
 });
+
