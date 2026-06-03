@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,6 +10,7 @@ import GoogleIcon from "@/components/GoogleIcon";
 import { useAuth } from "@/lib/AuthContext";
 
 export default function Register() {
+  const navigate = useNavigate();
   const { signInWithGoogle } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -27,13 +28,18 @@ export default function Register() {
     }
     setLoading(true);
     try {
-      const { error: signUpError } = await supabase.auth.signUp({
+      const { data, error: signUpError } = await supabase.auth.signUp({
         email,
         password,
         options: { emailRedirectTo: `${window.location.origin}/login` },
       });
       if (signUpError) throw signUpError;
-      setSent(true);
+      
+      if (data?.session) {
+        navigate("/admin");
+      } else {
+        setSent(true);
+      }
     } catch (err) {
       setError(err.message || "Registration failed");
     } finally {
