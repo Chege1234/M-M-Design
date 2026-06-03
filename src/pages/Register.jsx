@@ -17,7 +17,6 @@ export default function Register() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const [sent, setSent] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -38,7 +37,7 @@ export default function Register() {
       if (data?.session) {
         navigate("/admin");
       } else {
-        setSent(true);
+        navigate("/login");
       }
     } catch (err) {
       setError(err.message || "Registration failed");
@@ -46,25 +45,6 @@ export default function Register() {
       setLoading(false);
     }
   };
-
-  if (sent) {
-    return (
-      <AuthLayout
-        icon={Mail}
-        title="Check your email"
-        subtitle={`We sent a confirmation link to ${email}`}
-        footer={
-          <Link to="/login" className="text-primary font-medium hover:underline">
-            Back to log in
-          </Link>
-        }
-      >
-        <p className="text-sm text-foreground text-center">
-          Click the link in your email to activate your account, then log in.
-        </p>
-      </AuthLayout>
-    );
-  }
 
   return (
     <AuthLayout
