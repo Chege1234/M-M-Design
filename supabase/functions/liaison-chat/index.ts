@@ -141,7 +141,7 @@ async function generateCompletion(messages: any[], init: boolean): Promise<strin
           geminiMessages = [
             {
               role: 'user',
-              parts: [{ text: 'Begin the conversation with your opening greeting.' }],
+              parts: [{ text: "I'm Melba, Studio Liaison at M&M Design Group. Tell me about the project you have in mind." }],
             },
           ];
         } else {
@@ -330,4 +330,3 @@ Deno.serve(async (req) => {
     );
   }
 });
-
