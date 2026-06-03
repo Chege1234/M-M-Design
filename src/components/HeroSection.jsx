@@ -27,9 +27,11 @@ export default function HeroSection() {
           muted
           playsInline
           preload="auto"
+          poster="/hero-poster.jpg"
           className="h-full w-full object-cover"
         >
-          <source src="/hero-bg.mp4" type="video/mp4" />
+          <source src="/hero-bg-opt.webm" type="video/webm" />
+          <source src="/hero-bg-opt.mp4" type="video/mp4" />
         </video>
         <div className="absolute inset-0 bg-black/45 bg-gradient-to-b from-black/60 via-transparent to-ink/90" />
       </div>
