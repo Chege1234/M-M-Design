@@ -31,11 +31,14 @@ export default function HeroSection() {
         >
           <source src="/hero-bg.mp4" type="video/mp4" />
         </video>
-        <div className="absolute inset-0 bg-gradient-to-t from-ink/70 via-ink/30 to-transparent" />
+        <div className="absolute inset-0 bg-black/20 bg-gradient-to-t from-ink via-transparent to-black/30" />
       </div>
 
-      <div className="relative z-10 w-full max-w-7xl mx-auto px-6 md:px-16">
-        <div ref={contentRef} className="max-w-4xl mx-auto text-center">
+      <div className="relative z-10 w-full max-w-5xl mx-auto px-6 md:px-16">
+        <div
+          ref={contentRef}
+          className="backdrop-blur-[6px] bg-black/35 border border-white/5 px-6 py-10 md:px-16 md:py-16 rounded-2xl text-center shadow-2xl max-w-4xl mx-auto"
+        >
           <p
             data-animate
             className="section-label mb-6 opacity-0 animate-fade-up"
@@ -53,7 +56,7 @@ export default function HeroSection() {
 
           <p
             data-animate
-            className="font-body text-stone text-sm md:text-base tracking-wide max-w-xl mx-auto mb-10 opacity-0 animate-fade-up"
+            className="font-body text-linen/85 text-sm md:text-base tracking-wide max-w-xl mx-auto mb-10 opacity-0 animate-fade-up"
           >
             Architecture and urban design shaped with restraint — spaces that feel inevitable, not imposed.
           </p>
