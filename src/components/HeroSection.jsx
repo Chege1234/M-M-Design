@@ -19,19 +19,24 @@ export default function HeroSection() {
   };
 
   return (
-    <section className="relative min-h-screen flex items-end overflow-hidden bg-ink">
+    <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-ink">
       <div className="absolute inset-0">
-        <img
-          src={HERO_IMAGE}
-          alt=""
+        <video
+          autoPlay
+          loop
+          muted
+          playsInline
           className="h-full w-full object-cover opacity-50 grayscale-[20%]"
-        />
+          poster={HERO_IMAGE}
+        >
+          <source src="/hero-bg.mp4" type="video/mp4" />
+        </video>
         <div className="absolute inset-0 bg-gradient-to-t from-ink via-ink/75 to-ink/30" />
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_30%_20%,rgba(212,165,116,0.08),transparent_55%)]" />
       </div>
 
-      <div className="relative z-10 w-full max-w-7xl mx-auto px-6 md:px-16 pb-24 md:pb-32 pt-32">
-        <div ref={contentRef} className="max-w-4xl">
+      <div className="relative z-10 w-full max-w-7xl mx-auto px-6 md:px-16">
+        <div ref={contentRef} className="max-w-4xl mx-auto text-center">
           <p
             data-animate
             className="section-label mb-6 opacity-0 animate-fade-up"
@@ -49,14 +54,14 @@ export default function HeroSection() {
 
           <p
             data-animate
-            className="font-body text-stone text-sm md:text-base tracking-wide max-w-xl mb-10 opacity-0 animate-fade-up"
+            className="font-body text-stone text-sm md:text-base tracking-wide max-w-xl mx-auto mb-10 opacity-0 animate-fade-up"
           >
             Architecture and urban design shaped with restraint — spaces that feel inevitable, not imposed.
           </p>
 
           <div
             data-animate
-            className="flex flex-col sm:flex-row gap-4 sm:gap-6 opacity-0 animate-fade-up"
+            className="flex flex-col sm:flex-row justify-center gap-4 sm:gap-6 opacity-0 animate-fade-up"
           >
             <button
               type="button"
