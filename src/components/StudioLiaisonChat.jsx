@@ -2,6 +2,8 @@ import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { MessageCircle, X, Send } from 'lucide-react';
 
+const INITIAL_GREETING = "I'm Melba, Studio Liaison at M&M Design Group. Tell me about the project you have in mind";
+
 export default function StudioLiaisonChat() {
   const [isOpen, setIsOpen] = useState(false);
   const [hasOpened, setHasOpened] = useState(false);
@@ -22,63 +24,14 @@ export default function StudioLiaisonChat() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, isTyping]);
 
-  // Fetch opening greeting on mount
+  // Seed the opening greeting locally so it is exact and not model-generated.
   useEffect(() => {
-    if (!baseUrl || !anonKey) {
-      // If Supabase config is missing, show fallback message directly
-      setMessages([
-        {
-          role: 'assistant',
-          content: '__FALLBACK__',
-        },
-      ]);
-      return;
-    }
-
-    const fetchGreeting = async () => {
-      setIsTyping(true);
-      try {
-        const response = await fetch(endpoint, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${anonKey}`,
-          },
-          body: JSON.stringify({ messages: [], init: true }),
-        });
-
-        if (!response.ok) throw new Error('Network response not ok');
-        const data = await response.json();
-
-        if (data.reply === '__FALLBACK__') {
-          setMessages([
-            {
-              role: 'assistant',
-              content: '__FALLBACK__',
-            },
-          ]);
-        } else {
-          setMessages([
-            {
-              role: 'assistant',
-              content: data.reply || 'Hello! How can I assist you with your design goals today?',
-            },
-          ]);
-        }
-      } catch (err) {
-        console.error('Error fetching greeting:', err);
-        setMessages([
-          {
-            role: 'assistant',
-            content: '__FALLBACK__',
-          },
-        ]);
-      } finally {
-        setIsTyping(false);
-      }
-    };
-
-    fetchGreeting();
+    setMessages([
+      {
+        role: 'assistant',
+        content: INITIAL_GREETING,
+      },
+    ]);
   }, []);
 
   const handleOpen = () => {

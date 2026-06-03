@@ -54,12 +54,18 @@ Rules:
 
 If you are unable to answer a question or encounter a technical difficulty, respond with only the string __FALLBACK__ and nothing else.`;
 
+const INITIAL_GREETING = "I'm Melba, Studio Liaison at M&M Design Group. Tell me about the project you have in mind";
+
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
 async function generateCompletion(messages: any[], init: boolean): Promise<string> {
+  if (init) {
+    return INITIAL_GREETING;
+  }
+
   const providers = [
     // 1. Primary: Gemini 2.5 Flash
     {
