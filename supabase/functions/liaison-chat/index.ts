@@ -141,7 +141,7 @@ async function generateCompletion(messages: any[], init: boolean): Promise<strin
           geminiMessages = [
             {
               role: 'user',
-              parts: [{ text: "I'm Melba, Studio Liaison at M&M Design Group. Tell me about the project you have in mind." }],
+              parts: [{ text: "I'm Melba, Studio Liaison at M&M Design Group. Tell me about the project you have in mind" }],
             },
           ];
         } else {
@@ -180,7 +180,7 @@ async function generateCompletion(messages: any[], init: boolean): Promise<strin
         if (init) {
           openaiMessages = [
             { role: 'system', content: SYSTEM_PROMPT },
-            { role: 'user', content: 'Begin the conversation with your opening greeting.' }
+            { role: 'user', content: "I'm Melba, Studio Liaison at M&M Design Group. Tell me about the project you have in mind" }
           ];
         } else {
           openaiMessages = [
