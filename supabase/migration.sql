@@ -385,3 +385,46 @@ drop policy if exists "Admins can delete projects" on public.projects;
 create policy "Admins can delete projects"
   on public.projects for delete
   using (public.is_admin());
+
+-- ---------------------------------------------------------------------------
+-- Leads table
+-- ---------------------------------------------------------------------------
+create table if not exists public.leads (
+  id uuid primary key default gen_random_uuid(),
+  client_name text not null,
+  email text,
+  phone text,
+  project_type text,
+  location text,
+  scale text,
+  timeline text,
+  budget_range text,
+  notes text,
+  status text not null default 'New' check (status in ('New', 'Contacted', 'Qualified', 'Declined')),
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+drop trigger if exists leads_set_updated_at on public.leads;
+create trigger leads_set_updated_at
+  before update on public.leads
+  for each row execute function public.set_updated_at();
+
+alter table public.leads enable row level security;
+
+drop policy if exists "Admins can read leads" on public.leads;
+create policy "Admins can read leads"
+  on public.leads for select
+  using (public.is_admin());
+
+drop policy if exists "Admins can update leads" on public.leads;
+create policy "Admins can update leads"
+  on public.leads for update
+  using (public.is_admin())
+  with check (public.is_admin());
+
+drop policy if exists "Admins can delete leads" on public.leads;
+create policy "Admins can delete leads"
+  on public.leads for delete
+  using (public.is_admin());
+

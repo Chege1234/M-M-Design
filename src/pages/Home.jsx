@@ -5,6 +5,7 @@ import AboutSection from '../components/AboutSection';
 import ServicesSection from '../components/ServicesSection';
 import ContactSection from '../components/ContactSection';
 import Footer from '../components/Footer';
+import StudioLiaisonChat from '../components/StudioLiaisonChat';
 
 export default function Home() {
   return (
@@ -16,6 +17,7 @@ export default function Home() {
       <ServicesSection />
       <ContactSection />
       <Footer />
+      <StudioLiaisonChat />
     </main>
   );
 }
