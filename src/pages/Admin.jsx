@@ -381,7 +381,7 @@ function AdminDashboard() {
 }
 
 export default function Admin() {
-  const { user, isAdmin, isLoadingAuth } = useAuth();
+  const { user, isLoadingAuth } = useAuth();
 
   if (!isSupabaseConfigured) {
     return (
@@ -406,29 +406,6 @@ export default function Admin() {
   }
 
   if (!user) return <AdminLogin />;
-
-  if (!isAdmin) {
-    return (
-      <div className="min-h-screen bg-ink flex items-center justify-center p-6 text-linen text-center">
-        <div>
-          <p className="font-display text-2xl mb-4">Access denied</p>
-          <p className="font-body text-sm text-linen/60 mb-6">
-            Your account is not an admin. Ask the site owner to run:
-            <code className="block mt-2 text-xs bg-panel/40 p-2">
-              update profiles set role = &apos;admin&apos; where email = &apos;your@email.com&apos;;
-            </code>
-          </p>
-          <button
-            onClick={() => supabase.auth.signOut()}
-            className="text-bronze text-xs uppercase tracking-widest mr-4"
-          >
-            Sign out
-          </button>
-          <Link to="/" className="text-linen/50 text-xs uppercase tracking-widest">← Back to site</Link>
-        </div>
-      </div>
-    );
-  }
 
   return <AdminDashboard />;
 }
