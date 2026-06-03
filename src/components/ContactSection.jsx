@@ -57,11 +57,7 @@ export default function ContactSection() {
               <div>
                 <p className="font-body text-stone text-[0.65rem] tracking-widest uppercase mb-2">Studio</p>
                 <p className="font-body text-linen/80 text-sm leading-relaxed">
-                  123 Design Quarter
-                  <br />
-                  Sandton, Johannesburg
-                  <br />
-                  South Africa, 2196
+                  Nicosia, Cyprus
                 </p>
               </div>
               <div>
@@ -76,10 +72,10 @@ export default function ContactSection() {
               <div>
                 <p className="font-body text-stone text-[0.65rem] tracking-widest uppercase mb-2">Phone</p>
                 <a
-                  href="tel:+27110000000"
+                  href="tel:+905428727548"
                   className="font-body text-linen/80 text-sm hover:text-bronze transition-colors"
                 >
-                  +27 11 000 0000
+                  +90 542 872 7548
                 </a>
               </div>
             </div>

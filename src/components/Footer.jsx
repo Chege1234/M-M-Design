@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Instagram, Linkedin } from 'lucide-react';
+import { Instagram, ArrowUp } from 'lucide-react';
 
 const navLinks = [
   { label: 'Work', href: '#projects' },
@@ -36,12 +36,22 @@ export default function Footer() {
           </div>
 
           <div className="flex items-center gap-5">
-            <a href="#" aria-label="Instagram" className="text-stone hover:text-bronze transition-colors">
+            <a
+              href="https://instagram.com/modules_by_m"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Instagram"
+              className="text-stone hover:text-bronze transition-colors"
+            >
               <Instagram size={17} strokeWidth={1.25} />
             </a>
-            <a href="#" aria-label="LinkedIn" className="text-stone hover:text-bronze transition-colors">
-              <Linkedin size={17} strokeWidth={1.25} />
-            </a>
+            <button
+              onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+              aria-label="Scroll to top"
+              className="text-stone hover:text-bronze transition-colors cursor-pointer bg-transparent border-none p-0"
+            >
+              <ArrowUp size={17} strokeWidth={1.25} />
+            </button>
           </div>
         </div>
 
