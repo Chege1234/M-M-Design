@@ -45,7 +45,7 @@ export default function Navbar() {
               key={link.label}
               href={link.href}
               onClick={(e) => handleNavClick(e, link.href)}
-              className="font-body text-[0.65rem] tracking-[0.22em] uppercase text-stone hover:text-linen transition-colors duration-300"
+              className="font-body text-[0.68rem] tracking-[0.24em] uppercase font-medium text-linen/85 hover:text-linen transition-colors duration-300"
             >
               {link.label}
             </a>

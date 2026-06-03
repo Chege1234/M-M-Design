@@ -19,7 +19,7 @@ export default function HeroSection() {
   };
 
   return (
-    <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-ink">
+    <section className="relative min-h-screen flex items-end overflow-hidden bg-ink">
       <div className="absolute inset-0">
         <video
           autoPlay
@@ -31,14 +31,11 @@ export default function HeroSection() {
         >
           <source src="/hero-bg.mp4" type="video/mp4" />
         </video>
-        <div className="absolute inset-0 bg-black/20 bg-gradient-to-t from-ink via-transparent to-black/30" />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-ink/85" />
       </div>
 
-      <div className="relative z-10 w-full max-w-5xl mx-auto px-6 md:px-16">
-        <div
-          ref={contentRef}
-          className="backdrop-blur-[6px] bg-black/35 border border-white/5 px-6 py-10 md:px-16 md:py-16 rounded-2xl text-center shadow-2xl max-w-4xl mx-auto"
-        >
+      <div className="relative z-10 w-full max-w-7xl mx-auto px-6 md:px-16 pb-24 md:pb-32 pt-32">
+        <div ref={contentRef} className="max-w-4xl">
           <p
             data-animate
             className="section-label mb-6 opacity-0 animate-fade-up"
@@ -49,21 +46,22 @@ export default function HeroSection() {
           <h1
             data-animate
             className="section-title opacity-0 animate-fade-up mb-6"
-            style={{ fontSize: 'clamp(2.75rem, 7vw, 5.5rem)' }}
+            style={{ fontSize: 'clamp(2.75rem, 7vw, 5.5rem)', textShadow: '0 2px 10px rgba(0,0,0,0.4)' }}
           >
             M&amp;M Design Group
           </h1>
 
           <p
             data-animate
-            className="font-body text-linen/85 text-sm md:text-base tracking-wide max-w-xl mx-auto mb-10 opacity-0 animate-fade-up"
+            className="font-body text-linen/90 text-sm md:text-base tracking-wide max-w-xl mb-10 opacity-0 animate-fade-up"
+            style={{ textShadow: '0 1px 8px rgba(0,0,0,0.4)' }}
           >
             Architecture and urban design shaped with restraint — spaces that feel inevitable, not imposed.
           </p>
 
           <div
             data-animate
-            className="flex flex-col sm:flex-row justify-center gap-4 sm:gap-6 opacity-0 animate-fade-up"
+            className="flex flex-col sm:flex-row gap-4 sm:gap-6 opacity-0 animate-fade-up"
           >
             <button
               type="button"
