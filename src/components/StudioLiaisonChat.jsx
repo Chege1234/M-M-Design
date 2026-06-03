@@ -91,7 +91,7 @@ export default function StudioLiaisonChat() {
   };
 
   const handleSend = async () => {
-    if (!input.trim() || isTyping || leadSaved) return;
+    if (!input.trim() || isTyping) return;
 
     const userMessageText = input.trim();
     setInput('');
@@ -192,10 +192,10 @@ export default function StudioLiaisonChat() {
                 </div>
                 <div>
                   <h3 className="font-display text-base text-linen tracking-wider uppercase font-medium leading-none mb-1">
-                    Studio Liaison
+                    M&M Design Group
                   </h3>
                   <p className="text-[0.65rem] text-stone tracking-widest uppercase leading-none font-body">
-                    M&M Design Group
+                    Online
                   </p>
                 </div>
               </div>
@@ -258,40 +258,35 @@ export default function StudioLiaisonChat() {
               <div ref={messagesEndRef} />
             </div>
 
-            {/* Input / Success State Area */}
-            {!leadSaved ? (
-              <div className="p-4 bg-slate/50 border-t border-linen/10 flex items-end gap-2 shrink-0">
-                <textarea
-                  ref={textareaRef}
-                  value={input}
-                  onChange={handleInputChange}
-                  onKeyDown={handleKeyDown}
-                  placeholder="Message the Studio..."
-                  rows={1}
-                  className="flex-1 bg-slate border border-linen/15 focus:border-bronze focus:outline-none text-linen text-sm px-3.5 py-2.5 resize-none max-h-28 rounded-none transition-colors placeholder:text-stone font-body"
-                />
-                <button
-                  onClick={handleSend}
-                  disabled={!input.trim() || isTyping}
-                  className="bg-bronze hover:bg-bronze/90 text-ink p-2.5 rounded-none disabled:opacity-40 transition-opacity cursor-pointer shrink-0"
-                  aria-label="Send message"
-                >
-                  <Send size={16} />
-                </button>
-              </div>
-            ) : (
-              <div className="p-5 bg-slate/75 border-t border-linen/10 text-center space-y-2 shrink-0">
-                <p className="font-body text-xs text-bronze tracking-wider uppercase font-semibold">
-                  Thank you — a studio representative will be in touch within 48 business hours.
+            {/* Lead Saved Banner */}
+            {leadSaved && (
+              <div className="px-4 py-2.5 bg-bronze/10 border-t border-bronze/20 text-center shrink-0">
+                <p className="font-body text-[0.65rem] text-bronze tracking-wider uppercase font-semibold">
+                  ✓ Details received — we'll be in touch within 24 hours
                 </p>
-                <button
-                  onClick={handleScrollToContact}
-                  className="font-body text-[0.7rem] text-linen/70 hover:text-bronze transition-colors uppercase tracking-widest underline cursor-pointer bg-transparent border-none p-1 block w-full text-center"
-                >
-                  View contact section →
-                </button>
               </div>
             )}
+
+            {/* Input Area — always visible */}
+            <div className="p-4 bg-slate/50 border-t border-linen/10 flex items-end gap-2 shrink-0">
+              <textarea
+                ref={textareaRef}
+                value={input}
+                onChange={handleInputChange}
+                onKeyDown={handleKeyDown}
+                placeholder="Message M&M Design..."
+                rows={1}
+                className="flex-1 bg-slate border border-linen/15 focus:border-bronze focus:outline-none text-linen text-sm px-3.5 py-2.5 resize-none max-h-28 rounded-none transition-colors placeholder:text-stone font-body"
+              />
+              <button
+                onClick={handleSend}
+                disabled={!input.trim() || isTyping}
+                className="bg-bronze hover:bg-bronze/90 text-ink p-2.5 rounded-none disabled:opacity-40 transition-opacity cursor-pointer shrink-0"
+                aria-label="Send message"
+              >
+                <Send size={16} />
+              </button>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
