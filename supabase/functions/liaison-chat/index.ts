@@ -72,10 +72,31 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+/** Strip seeded greeting / leading assistant turns so Gemini gets user-first history. */
+function normalizeMessagesForLLM(messages: Array<{ role: string; content: string }>) {
+  const valid = messages.filter(
+    (m) => m?.content?.trim() && m.content !== '__FALLBACK__',
+  );
+
+  let start = 0;
+  while (start < valid.length && valid[start].role === 'assistant') {
+    start++;
+  }
+
+  const trimmed = valid.slice(start);
+  if (trimmed.length === 0) {
+    throw new Error('No user messages to process');
+  }
+
+  return trimmed;
+}
+
 async function generateCompletion(messages: any[], init: boolean): Promise<string> {
   if (init) {
     return INITIAL_GREETING;
   }
+
+  const llmMessages = init ? messages : normalizeMessagesForLLM(messages);
 
   const providers = [
     // 1. Primary: Gemini 2.5 Flash
@@ -85,18 +106,18 @@ async function generateCompletion(messages: any[], init: boolean): Promise<strin
       model: 'gemini-2.5-flash',
       apiKey: Deno.env.get('GEMINI_API_KEY'),
     },
-    // 2. Fallback: Gemini 1.5 Flash
+    // 2. Fallback: Gemini 2.5 Flash Lite
     {
-      name: 'Gemini 1.5 Flash',
+      name: 'Gemini 2.5 Flash Lite',
       type: 'gemini',
-      model: 'gemini-1.5-flash',
+      model: 'gemini-2.5-flash-lite',
       apiKey: Deno.env.get('GEMINI_API_KEY'),
     },
-    // 3. Fallback: Gemini 1.5 Flash 8B
+    // 3. Fallback: Gemini 2.0 Flash
     {
-      name: 'Gemini 1.5 Flash 8B',
+      name: 'Gemini 2.0 Flash',
       type: 'gemini',
-      model: 'gemini-1.5-flash-8b',
+      model: 'gemini-2.0-flash',
       apiKey: Deno.env.get('GEMINI_API_KEY'),
     },
     // 4. Fallback: Groq Llama 3.3 70B
@@ -105,7 +126,7 @@ async function generateCompletion(messages: any[], init: boolean): Promise<strin
       type: 'openai-compatible',
       endpoint: 'https://api.groq.com/openai/v1/chat/completions',
       model: 'llama-3.3-70b-versatile',
-      apiKey: Deno.env.get('GROQ_API_KEY') || Deno.env.get('Groq Console'),
+      apiKey: Deno.env.get('GROQ_API_KEY'),
     },
     // 5. Fallback: Groq Gemma 2 9B
     {
@@ -113,7 +134,7 @@ async function generateCompletion(messages: any[], init: boolean): Promise<strin
       type: 'openai-compatible',
       endpoint: 'https://api.groq.com/openai/v1/chat/completions',
       model: 'gemma2-9b-it',
-      apiKey: Deno.env.get('GROQ_API_KEY') || Deno.env.get('Groq Console'),
+      apiKey: Deno.env.get('GROQ_API_KEY'),
     },
     // 6. Fallback: OpenRouter Gemma 2 9B (Free)
     {
@@ -121,7 +142,7 @@ async function generateCompletion(messages: any[], init: boolean): Promise<strin
       type: 'openai-compatible',
       endpoint: 'https://openrouter.ai/api/v1/chat/completions',
       model: 'google/gemma-2-9b-it:free',
-      apiKey: Deno.env.get('OPENROUTER_API_KEY') || Deno.env.get('Open router'),
+      apiKey: Deno.env.get('OPENROUTER_API_KEY'),
     },
     // 7. Fallback: OpenRouter Llama 3.3 70B (Free)
     {
@@ -129,7 +150,7 @@ async function generateCompletion(messages: any[], init: boolean): Promise<strin
       type: 'openai-compatible',
       endpoint: 'https://openrouter.ai/api/v1/chat/completions',
       model: 'meta-llama/llama-3.3-70b-instruct:free',
-      apiKey: Deno.env.get('OPENROUTER_API_KEY') || Deno.env.get('Open router'),
+      apiKey: Deno.env.get('OPENROUTER_API_KEY'),
     },
     // 8. Fallback: Hugging Face Qwen 2.5 72B Instruct
     {
@@ -162,7 +183,7 @@ async function generateCompletion(messages: any[], init: boolean): Promise<strin
             },
           ];
         } else {
-          geminiMessages = messages.map((msg: any) => ({
+          geminiMessages = llmMessages.map((msg: any) => ({
             role: msg.role === 'user' ? 'user' : 'model',
             parts: [{ text: msg.content }],
           }));
@@ -180,6 +201,10 @@ async function generateCompletion(messages: any[], init: boolean): Promise<strin
               systemInstruction: {
                 parts: [{ text: SYSTEM_PROMPT }],
               },
+              generationConfig: {
+                maxOutputTokens: 500,
+                temperature: 0.7,
+              },
             }),
           }
         );
@@ -191,6 +216,9 @@ async function generateCompletion(messages: any[], init: boolean): Promise<strin
 
         const data = await response.json();
         text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+        if (!text && data.candidates?.[0]?.finishReason) {
+          throw new Error(`Gemini empty response (finishReason: ${data.candidates[0].finishReason})`);
+        }
 
       } else if (provider.type === 'openai-compatible') {
         let openaiMessages;
@@ -202,7 +230,7 @@ async function generateCompletion(messages: any[], init: boolean): Promise<strin
         } else {
           openaiMessages = [
             { role: 'system', content: SYSTEM_PROMPT },
-            ...messages.map((msg: any) => ({
+            ...llmMessages.map((msg: any) => ({
               role: msg.role === 'user' ? 'user' : 'assistant',
               content: msg.content,
             }))

@@ -1,8 +1,18 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { MessageCircle, X, Send } from 'lucide-react';
+import { supabase, isSupabaseConfigured } from '../lib/supabase';
 
 const INITIAL_GREETING = "I'm Melba, Studio Liaison at M&M Design Group. Tell me about the project you have in mind";
+
+/** Omit seeded greeting so the edge function sends a user-first history to Gemini. */
+function messagesForApi(messages) {
+  return messages.filter(
+    (m, i) =>
+      m.content !== '__FALLBACK__' &&
+      !(i === 0 && m.role === 'assistant' && m.content === INITIAL_GREETING),
+  );
+}
 
 export default function StudioLiaisonChat() {
   const [isOpen, setIsOpen] = useState(false);
@@ -14,10 +24,6 @@ export default function StudioLiaisonChat() {
 
   const messagesEndRef = useRef(null);
   const textareaRef = useRef(null);
-
-  const baseUrl = import.meta.env.VITE_SUPABASE_URL?.trim();
-  const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY?.trim();
-  const endpoint = `${baseUrl}/functions/v1/liaison-chat`;
 
   // Auto-scroll to bottom of messages
   useEffect(() => {
@@ -56,21 +62,21 @@ export default function StudioLiaisonChat() {
     setIsTyping(true);
 
     try {
-      if (!baseUrl || !anonKey) {
+      if (!isSupabaseConfigured) {
         throw new Error('Supabase not configured');
       }
 
-      const response = await fetch(endpoint, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${anonKey}`,
+      const { data, error } = await supabase.functions.invoke('liaison-chat', {
+        body: {
+          messages: messagesForApi(updatedMessages),
+          leadAlreadySaved,
         },
-        body: JSON.stringify({ messages: updatedMessages, leadAlreadySaved }),
       });
 
-      if (!response.ok) throw new Error('Network response not ok');
-      const data = await response.json();
+      if (error) {
+        console.error('liaison-chat invoke error:', error);
+        throw error;
+      }
 
       if (data.reply === '__FALLBACK__') {
         setMessages((prev) => [...prev, { role: 'assistant', content: '__FALLBACK__' }]);
