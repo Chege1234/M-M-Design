@@ -4,6 +4,34 @@ import { deleteProjectImages } from './imageUpload';
 
 export { categories };
 
+export async function fetchCategories() {
+  if (!isSupabaseConfigured) return categories;
+
+  const { data, error } = await supabase
+    .from('categories')
+    .select('name')
+    .order('created_at', { ascending: true });
+
+  if (error || !data?.length) {
+    if (error) console.warn('Failed to load categories from Supabase:', error.message);
+    return categories;
+  }
+
+  return data.map(c => c.name);
+}
+
+export async function createCategory(name) {
+  if (!isSupabaseConfigured) return;
+  const { data, error } = await supabase
+    .from('categories')
+    .insert([{ name }])
+    .select()
+    .single();
+  // ignore error if it already exists (handled by on conflict or simply catching it)
+  if (error && error.code !== '23505') throw error; 
+  return data;
+}
+
 export function slugify(name) {
   return name
     .toLowerCase()
@@ -133,6 +161,96 @@ export async function submitContactInquiry({ name, email, type, message }) {
     project_type: type,
     message,
   });
+
+  if (error) throw error;
+}
+
+// ── Contact Reports (contact_inquiries) ──────────────────────────────────────
+
+export async function fetchContactReports() {
+  if (!isSupabaseConfigured) return [];
+
+  const { data, error } = await supabase
+    .from('contact_inquiries')
+    .select('*')
+    .order('created_at', { ascending: false });
+
+  if (error) throw error;
+  return data || [];
+}
+
+export async function updateReportStatus(id, status) {
+  const { error } = await supabase
+    .from('contact_inquiries')
+    .update({ status })
+    .eq('id', id);
+
+  if (error) throw error;
+}
+
+// ── Leads status ─────────────────────────────────────────────────────────────
+
+export async function fetchLeads() {
+  if (!isSupabaseConfigured) return [];
+
+  const { data, error } = await supabase
+    .from('leads')
+    .select('*')
+    .order('created_at', { ascending: false });
+
+  if (error) throw error;
+  return data || [];
+}
+
+export async function updateLeadStatus(id, status) {
+  const { error } = await supabase
+    .from('leads')
+    .update({ status })
+    .eq('id', id);
+
+  if (error) throw error;
+}
+
+// ── Admin Notes ──────────────────────────────────────────────────────────────
+
+export async function fetchAdminNotes() {
+  if (!isSupabaseConfigured) return [];
+
+  const { data, error } = await supabase
+    .from('admin_notes')
+    .select('*')
+    .order('note_date', { ascending: false })
+    .order('created_at', { ascending: false });
+
+  if (error) throw error;
+  return data || [];
+}
+
+export async function createAdminNote({ title, content, note_date }) {
+  const { data, error } = await supabase
+    .from('admin_notes')
+    .insert({ title, content, note_date: note_date || new Date().toISOString().split('T')[0] })
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data;
+}
+
+export async function updateAdminNote(id, { title, content }) {
+  const { error } = await supabase
+    .from('admin_notes')
+    .update({ title, content })
+    .eq('id', id);
+
+  if (error) throw error;
+}
+
+export async function deleteAdminNote(id) {
+  const { error } = await supabase
+    .from('admin_notes')
+    .delete()
+    .eq('id', id);
 
   if (error) throw error;
 }

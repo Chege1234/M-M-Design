@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { categories as fallbackCategories } from '../lib/projects';
-import { useProjects } from '@/hooks/use-projects';
+import { useProjects, useCategories } from '@/hooks/use-projects';
 import ProjectCard from './ProjectCard';
 
 gsap.registerPlugin(ScrollTrigger);
@@ -10,19 +10,12 @@ gsap.registerPlugin(ScrollTrigger);
 export default function ProjectsSection() {
   const [activeFilter, setActiveFilter] = useState('All');
   const { data: projects = [] } = useProjects();
+  const { data: categories = fallbackCategories } = useCategories();
   const sectionRef = useRef(null);
   const headingRef = useRef(null);
   const cardRefs = useRef([]);
 
-  const dynamicCategories = [
-    'All',
-    ...Array.from(
-      new Set([
-        ...fallbackCategories.filter((c) => c !== 'All'),
-        ...projects.map((p) => p.category),
-      ])
-    ),
-  ];
+  const dynamicCategories = ['All', ...categories.filter(c => c !== 'All')];
 
   const filtered =
     activeFilter === 'All' ? projects : projects.filter((p) => p.category === activeFilter);
