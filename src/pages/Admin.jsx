@@ -11,6 +11,8 @@ import {
   slugify,
   categories,
 } from '@/lib/projects';
+import { deleteProjectImages } from '@/lib/imageUpload';
+import ImageDropZone from '@/components/ImageDropZone';
 import { Loader2, Plus, Pencil, Trash2, LogOut, ExternalLink } from 'lucide-react';
 
 const emptyProject = () => ({
@@ -22,7 +24,7 @@ const emptyProject = () => ({
   area: '',
   status: 'Completed',
   image: '',
-  galleryText: '',
+  galleryUrls: [],
   description: '',
   challenge: '',
   outcome: '',
@@ -31,7 +33,7 @@ const emptyProject = () => ({
 function projectToForm(p) {
   return {
     ...p,
-    galleryText: (p.gallery ?? []).join('\n'),
+    galleryUrls: Array.isArray(p.gallery) ? [...p.gallery] : [],
   };
 }
 
@@ -45,10 +47,7 @@ function formToProject(form) {
     area: form.area,
     status: form.status,
     image: form.image,
-    gallery: form.galleryText
-      .split('\n')
-      .map((s) => s.trim())
-      .filter(Boolean),
+    gallery: (form.galleryUrls ?? []).filter(Boolean),
     description: form.description,
     challenge: form.challenge,
     outcome: form.outcome,
@@ -183,15 +182,23 @@ function ProjectForm({ initial, onSave, onCancel, saving }) {
           <input className={fieldClass} value={form.status} onChange={(e) => set('status', e.target.value)} />
         </div>
         <div className="md:col-span-2">
-          <label className="text-linen/50 text-xs uppercase tracking-widest">Cover image URL</label>
-          <input className={fieldClass} value={form.image} onChange={(e) => set('image', e.target.value)} required />
+          <label className="text-linen/50 text-xs uppercase tracking-widest mb-2 block">Cover image</label>
+          <ImageDropZone
+            value={form.image ? [form.image] : []}
+            onChange={(urls) => set('image', urls[0] || '')}
+            projectSlug={form.slug || slugify(form.name) || 'new-project'}
+            multiple={false}
+            label="Drop cover image here or click to browse"
+          />
         </div>
         <div className="md:col-span-2">
-          <label className="text-linen/50 text-xs uppercase tracking-widest">Gallery URLs (one per line)</label>
-          <textarea
-            className={`${fieldClass} min-h-[80px]`}
-            value={form.galleryText}
-            onChange={(e) => set('galleryText', e.target.value)}
+          <label className="text-linen/50 text-xs uppercase tracking-widest mb-2 block">Gallery images</label>
+          <ImageDropZone
+            value={form.galleryUrls}
+            onChange={(urls) => set('galleryUrls', urls)}
+            projectSlug={form.slug || slugify(form.name) || 'new-project'}
+            multiple={true}
+            label="Drop gallery images here or click to browse"
           />
         </div>
         <div className="md:col-span-2">
@@ -293,6 +300,12 @@ function AdminDashboard() {
     if (!window.confirm(`Delete project "${slug}"?`)) return;
     setError('');
     try {
+      // Clean up storage images before deleting the project row
+      const project = projects.find((p) => p.slug === slug);
+      if (project) {
+        const allImageUrls = [project.image, ...(project.gallery || [])].filter(Boolean);
+        await deleteProjectImages(allImageUrls).catch((e) => console.warn('Image cleanup:', e));
+      }
       await deleteProject(slug);
       await refresh();
     } catch (err) {

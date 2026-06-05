@@ -1,5 +1,6 @@
 import { supabase, isSupabaseConfigured } from '@/lib/supabase';
 import { categories, projects as fallbackProjects } from '@/data/projects-fallback';
+import { deleteProjectImages } from './imageUpload';
 
 export { categories };
 
@@ -105,6 +106,18 @@ export async function updateProject(slug, project) {
 }
 
 export async function deleteProject(slug) {
+  try {
+    const project = await fetchProjectBySlug(slug);
+    if (project) {
+      const allImageUrls = [project.image, ...(project.gallery || [])].filter(Boolean);
+      if (allImageUrls.length > 0) {
+        await deleteProjectImages(allImageUrls);
+      }
+    }
+  } catch (err) {
+    console.warn('Failed to clean up project images during deletion:', err);
+  }
+
   const { error } = await supabase.from('projects').delete().eq('slug', slug);
   if (error) throw error;
 }
