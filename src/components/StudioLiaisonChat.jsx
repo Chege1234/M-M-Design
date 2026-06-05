@@ -66,7 +66,7 @@ export default function StudioLiaisonChat() {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${anonKey}`,
         },
-        body: JSON.stringify({ messages: updatedMessages }),
+        body: JSON.stringify({ messages: updatedMessages, leadAlreadySaved }),
       });
 
       if (!response.ok) throw new Error('Network response not ok');
