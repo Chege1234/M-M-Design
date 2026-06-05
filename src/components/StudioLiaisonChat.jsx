@@ -1,17 +1,23 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { MessageCircle, X, Send } from 'lucide-react';
-import { invokeLiaisonChat, isSupabaseConfigured } from '../lib/supabase';
+import { callLiaisonChat } from '../lib/liaisonChat';
 
 const INITIAL_GREETING = "I'm Melba, Studio Liaison at M&M Design Group. Tell me about the project you have in mind";
 
-/** Omit seeded greeting so the edge function sends a user-first history to Gemini. */
+/** Omit seeded greeting / fallback bubbles; never send an empty history. */
 function messagesForApi(messages) {
-  return messages.filter(
+  const filtered = messages.filter(
     (m, i) =>
+      m?.content?.trim() &&
       m.content !== '__FALLBACK__' &&
       !(i === 0 && m.role === 'assistant' && m.content === INITIAL_GREETING),
   );
+
+  if (filtered.length > 0) return filtered;
+
+  const lastUser = [...messages].reverse().find((m) => m.role === 'user' && m.content?.trim());
+  return lastUser ? [lastUser] : [];
 }
 
 export default function StudioLiaisonChat() {
@@ -62,12 +68,13 @@ export default function StudioLiaisonChat() {
     setIsTyping(true);
 
     try {
-      if (!isSupabaseConfigured) {
-        throw new Error('Supabase not configured');
+      const apiMessages = messagesForApi(updatedMessages);
+      if (apiMessages.length === 0) {
+        throw new Error('No message to send');
       }
 
-      const data = await invokeLiaisonChat({
-        messages: messagesForApi(updatedMessages),
+      const data = await callLiaisonChat({
+        messages: apiMessages,
         leadAlreadySaved,
       });
 

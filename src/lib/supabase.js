@@ -1,20 +1,58 @@
 import { createClient } from '@supabase/supabase-js';
+import { LIAISON_CHAT_ANON_KEY, LIAISON_CHAT_URL } from './liaisonChat';
 
-/**
- * Public Supabase project defaults (anon key is client-safe; RLS protects data).
- * Used when VITE_* env vars are missing on the host (common Vercel misconfiguration).
- */
-export const SUPABASE_PROJECT_URL = 'https://hbvgecldtlznunblnkfn.supabase.co';
-export const SUPABASE_ANON_KEY =
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhidmdlY2xkdGx6bnVuYmxua2ZuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAxMzQyNzksImV4cCI6MjA5NTcxMDI3OX0.-76sbTylZ-f6FHeL5XmFqfTvVcc-0VqpjWU4cYwhJAU';
+const PROJECT_REF = 'hbvgecldtlznunblnkfn';
 
-export const supabaseUrl = (
-  import.meta.env.VITE_SUPABASE_URL?.trim() || SUPABASE_PROJECT_URL
-).replace(/\/$/, '');
+function cleanEnv(value) {
+  if (!value) return '';
+  return value.trim().replace(/^['"]|['"]$/g, '');
+}
 
-export const supabaseAnonKey =
-  import.meta.env.VITE_SUPABASE_ANON_KEY?.trim() || SUPABASE_ANON_KEY;
+function jwtProjectRef(token) {
+  try {
+    const payload = JSON.parse(
+      atob(token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')),
+    );
+    return payload.ref || null;
+  } catch {
+    return null;
+  }
+}
 
+function resolveSupabaseConfig() {
+  const envUrl = cleanEnv(import.meta.env.VITE_SUPABASE_URL);
+  const envKey = cleanEnv(import.meta.env.VITE_SUPABASE_ANON_KEY);
+
+  const urlValid = envUrl.includes(PROJECT_REF);
+  const keyValid =
+    (envKey.startsWith('eyJ') && jwtProjectRef(envKey) === PROJECT_REF) ||
+    envKey.startsWith('sb_publishable_');
+
+  if (urlValid && keyValid) {
+    return {
+      url: envUrl.replace(/\/$/, ''),
+      key: envKey,
+      source: 'env',
+    };
+  }
+
+  if (envUrl || envKey) {
+    console.warn(
+      '[Supabase] VITE_SUPABASE_* does not match project hbvgecldtlznunblnkfn — using built-in defaults for the data client.',
+    );
+  }
+
+  return {
+    url: LIAISON_CHAT_URL,
+    key: LIAISON_CHAT_ANON_KEY,
+    source: 'default',
+  };
+}
+
+const config = resolveSupabaseConfig();
+
+export const supabaseUrl = config.url;
+export const supabaseAnonKey = config.key;
 export const isSupabaseConfigured = Boolean(supabaseUrl && supabaseAnonKey);
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
@@ -25,46 +63,8 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   },
 });
 
-/** Call Melba liaison-chat with SDK invoke, then direct fetch if the client URL was wrong. */
+/** @deprecated Use callLiaisonChat from ./liaisonChat.js */
 export async function invokeLiaisonChat(body) {
-  const { data, error } = await supabase.functions.invoke('liaison-chat', { body });
-
-  if (!error && data && typeof data.reply === 'string') {
-    return data;
-  }
-
-  if (error) {
-    console.warn('liaison-chat invoke failed, retrying with fetch:', error.message || error);
-  }
-
-  const response = await fetch(`${supabaseUrl}/functions/v1/liaison-chat`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${supabaseAnonKey}`,
-      apikey: supabaseAnonKey,
-    },
-    body: JSON.stringify(body),
-  });
-
-  if (!response.ok) {
-    const detail = await response.text().catch(() => '');
-    throw new Error(`liaison-chat HTTP ${response.status}${detail ? `: ${detail}` : ''}`);
-  }
-
-  const payload = await response.json();
-  if (!payload?.reply) {
-    throw new Error('liaison-chat returned an empty response');
-  }
-
-  return payload;
-}
-
-if (
-  import.meta.env.PROD &&
-  (!import.meta.env.VITE_SUPABASE_URL?.trim() || !import.meta.env.VITE_SUPABASE_ANON_KEY?.trim())
-) {
-  console.warn(
-    'VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY not set on this host — using built-in project defaults.',
-  );
+  const { callLiaisonChat } = await import('./liaisonChat');
+  return callLiaisonChat(body);
 }

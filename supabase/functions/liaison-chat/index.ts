@@ -63,7 +63,7 @@ Rules:
 - Maintain a warm, professional persona. Plain language always.
 - Keep responses relatively brief (1–3 sentences per turn) to encourage dialogue.
 
-If you are unable to answer a question or encounter a technical difficulty, respond with only the string __FALLBACK__ and nothing else.`;
+If you cannot answer something, say briefly that our team can help via the contact form — never output the literal text __FALLBACK__.`;
 
 const INITIAL_GREETING = "I'm Melba, Studio Liaison at M&M Design Group. Tell me about the project you have in mind";
 
@@ -189,7 +189,7 @@ async function generateCompletion(messages: any[], init: boolean): Promise<strin
           }));
         }
 
-        const response = await fetch(
+        const response = await fetchWithTimeout(
           `https://generativelanguage.googleapis.com/v1beta/models/${provider.model}:generateContent?key=${provider.apiKey}`,
           {
             method: 'POST',
@@ -248,7 +248,7 @@ async function generateCompletion(messages: any[], init: boolean): Promise<strin
           headers['X-Title'] = 'M&M Design Group';
         }
 
-        const response = await fetch(provider.endpoint!, {
+        const response = await fetchWithTimeout(provider.endpoint!, {
           method: 'POST',
           headers,
           body: JSON.stringify({
@@ -284,6 +284,18 @@ async function generateCompletion(messages: any[], init: boolean): Promise<strin
   throw new Error('All model providers in fallback chain failed.');
 }
 
+const PROVIDER_TIMEOUT_MS = 20_000;
+
+async function fetchWithTimeout(
+  input: string | URL,
+  init: RequestInit,
+): Promise<Response> {
+  return await fetch(input, {
+    ...init,
+    signal: AbortSignal.timeout(PROVIDER_TIMEOUT_MS),
+  });
+}
+
 Deno.serve(async (req) => {
   // Handle CORS preflight request
   if (req.method === 'OPTIONS') {
@@ -293,8 +305,8 @@ Deno.serve(async (req) => {
   try {
     const { messages, init, leadAlreadySaved } = await req.json();
 
-    if (!init && (!messages || !Array.isArray(messages))) {
-      throw new Error('Invalid messages array');
+    if (!init && (!messages || !Array.isArray(messages) || messages.length === 0)) {
+      throw new Error('Invalid or empty messages array');
     }
 
     const text = await generateCompletion(messages, init);
