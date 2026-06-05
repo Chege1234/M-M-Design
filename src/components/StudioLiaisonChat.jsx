@@ -75,7 +75,7 @@ export default function StudioLiaisonChat() {
 
       const data = await callLiaisonChat({
         messages: apiMessages,
-        leadAlreadySaved,
+        leadAlreadySaved: leadSaved,
       });
 
       if (data.reply === '__FALLBACK__') {
