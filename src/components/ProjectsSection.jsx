@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { categories } from '../lib/projects';
+import { categories as fallbackCategories } from '../lib/projects';
 import { useProjects } from '@/hooks/use-projects';
 import ProjectCard from './ProjectCard';
 
@@ -13,6 +13,16 @@ export default function ProjectsSection() {
   const sectionRef = useRef(null);
   const headingRef = useRef(null);
   const cardRefs = useRef([]);
+
+  const dynamicCategories = [
+    'All',
+    ...Array.from(
+      new Set([
+        ...fallbackCategories.filter((c) => c !== 'All'),
+        ...projects.map((p) => p.category),
+      ])
+    ),
+  ];
 
   const filtered =
     activeFilter === 'All' ? projects : projects.filter((p) => p.category === activeFilter);
@@ -63,7 +73,7 @@ export default function ProjectsSection() {
             Projects
           </h2>
           <div className="mt-10 flex flex-wrap gap-2">
-            {categories.map((cat) => (
+            {dynamicCategories.map((cat) => (
               <button
                 key={cat}
                 type="button"

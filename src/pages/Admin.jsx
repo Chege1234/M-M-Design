@@ -9,7 +9,7 @@ import {
   updateProject,
   deleteProject,
   slugify,
-  categories,
+  categories as staticCategories,
 } from '@/lib/projects';
 import { deleteProjectImages } from '@/lib/imageUpload';
 import ImageDropZone from '@/components/ImageDropZone';
@@ -18,7 +18,7 @@ import { Loader2, Plus, Pencil, Trash2, LogOut, ExternalLink } from 'lucide-reac
 const emptyProject = () => ({
   slug: '',
   name: '',
-  category: categories[1] ?? 'Contemporary Houses',
+  category: staticCategories[1] ?? 'Contemporary Houses',
   location: '',
   year: new Date().getFullYear().toString(),
   area: '',
@@ -114,18 +114,30 @@ function AdminLogin() {
   );
 }
 
-function ProjectForm({ initial, onSave, onCancel, saving }) {
+function ProjectForm({ initial, onSave, onCancel, saving, categories = [] }) {
   const [form, setForm] = useState(initial ?? emptyProject());
+  const [isCustomCategory, setIsCustomCategory] = useState(false);
+  const [customCategoryText, setCustomCategoryText] = useState('');
 
   useEffect(() => {
     setForm(initial ?? emptyProject());
+    setIsCustomCategory(false);
+    setCustomCategoryText('');
   }, [initial]);
 
   const set = (key, value) => setForm((f) => ({ ...f, [key]: value }));
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onSave(formToProject(form));
+    const finalCategory = isCustomCategory ? customCategoryText.trim() : form.category;
+    if (isCustomCategory && !finalCategory) {
+      alert('Please enter a category name');
+      return;
+    }
+    onSave(formToProject({
+      ...form,
+      category: finalCategory
+    }));
   };
 
   const fieldClass =
@@ -153,17 +165,51 @@ function ProjectForm({ initial, onSave, onCancel, saving }) {
         </div>
         <div>
           <label className="text-linen/50 text-xs uppercase tracking-widest">Category</label>
-          <select
-            className={fieldClass}
-            value={form.category}
-            onChange={(e) => set('category', e.target.value)}
-          >
-            {categories.filter((c) => c !== 'All').map((c) => (
-              <option key={c} value={c} className="bg-ink">
-                {c}
-              </option>
-            ))}
-          </select>
+          {!isCustomCategory ? (
+            <div className="flex gap-2">
+              <select
+                className={fieldClass}
+                value={form.category}
+                onChange={(e) => {
+                  if (e.target.value === 'custom') {
+                    setIsCustomCategory(true);
+                  } else {
+                    set('category', e.target.value);
+                  }
+                }}
+              >
+                {categories.map((c) => (
+                  <option key={c} value={c} className="bg-ink">
+                    {c}
+                  </option>
+                ))}
+                <option value="custom" className="bg-ink text-bronze font-semibold">
+                  + Create custom category...
+                </option>
+              </select>
+            </div>
+          ) : (
+            <div className="flex gap-2">
+              <input
+                type="text"
+                className={fieldClass}
+                placeholder="Enter new category name"
+                value={customCategoryText}
+                onChange={(e) => setCustomCategoryText(e.target.value)}
+                required
+              />
+              <button
+                type="button"
+                onClick={() => {
+                  setIsCustomCategory(false);
+                  setCustomCategoryText('');
+                }}
+                className="border border-linen/30 px-3 text-linen text-xs hover:border-linen shrink-0"
+              >
+                Cancel
+              </button>
+            </div>
+          )}
         </div>
         <div>
           <label className="text-linen/50 text-xs uppercase tracking-widest">Location</label>
@@ -251,6 +297,13 @@ function AdminDashboard() {
     queryKey: ['projects'],
     queryFn: fetchProjects,
   });
+
+  const dynamicCategories = [
+    ...new Set([
+      ...staticCategories.filter((c) => c !== 'All'),
+      ...projects.map((p) => p.category),
+    ]),
+  ];
 
   const refresh = () => queryClient.invalidateQueries({ queryKey: ['projects'] });
 
@@ -406,6 +459,7 @@ function AdminDashboard() {
 
             {creating && (
               <ProjectForm
+                categories={dynamicCategories}
                 onSave={(p) => handleSave(p, null)}
                 onCancel={() => setCreating(false)}
                 saving={saving}
@@ -415,6 +469,7 @@ function AdminDashboard() {
             {editing && (
               <ProjectForm
                 initial={projectToForm(editing)}
+                categories={dynamicCategories}
                 onSave={(p) => handleSave(p, editing.slug)}
                 onCancel={() => setEditing(null)}
                 saving={saving}
