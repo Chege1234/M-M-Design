@@ -12,6 +12,7 @@ export default function ImageDropZone({
   onChange,
   projectSlug = 'unsorted',
   multiple = false,
+  maxFiles = multiple ? 10 : 1,
   label = 'Drop images here',
 }) {
   const [isDragOver, setIsDragOver] = useState(false);
@@ -24,6 +25,19 @@ export default function ImageDropZone({
     async (fileList) => {
       const files = Array.from(fileList);
       if (files.length === 0) return;
+
+      // Check max files limit
+      if (!multiple) {
+        if (files.length > 1) {
+          setError('Only 1 cover image is allowed.');
+          return;
+        }
+      } else {
+        if (value.length + files.length > maxFiles) {
+          setError(`Maximum of ${maxFiles} images allowed. (Currently has ${value.length})`);
+          return;
+        }
+      }
 
       // Validate all files first
       for (const file of files) {
@@ -63,7 +77,7 @@ export default function ImageDropZone({
         setUploadProgress('');
       }
     },
-    [value, onChange, projectSlug, multiple],
+    [value, onChange, projectSlug, multiple, maxFiles],
   );
 
   const handleDragOver = (e) => {
@@ -147,7 +161,7 @@ export default function ImageDropZone({
               {label}
             </p>
             <p className="text-linen/30 text-[0.6rem] font-body tracking-wider">
-              JPEG, PNG, WebP, GIF · Max 5 MB
+              JPEG, PNG, WebP, GIF · Max 5 MB · Max {maxFiles} file{maxFiles > 1 ? 's' : ''}
             </p>
           </>
         )}
