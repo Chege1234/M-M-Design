@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { MessageCircle, X, Send } from 'lucide-react';
-import { supabase, isSupabaseConfigured } from '../lib/supabase';
+import { invokeLiaisonChat, isSupabaseConfigured } from '../lib/supabase';
 
 const INITIAL_GREETING = "I'm Melba, Studio Liaison at M&M Design Group. Tell me about the project you have in mind";
 
@@ -66,17 +66,10 @@ export default function StudioLiaisonChat() {
         throw new Error('Supabase not configured');
       }
 
-      const { data, error } = await supabase.functions.invoke('liaison-chat', {
-        body: {
-          messages: messagesForApi(updatedMessages),
-          leadAlreadySaved,
-        },
+      const data = await invokeLiaisonChat({
+        messages: messagesForApi(updatedMessages),
+        leadAlreadySaved,
       });
-
-      if (error) {
-        console.error('liaison-chat invoke error:', error);
-        throw error;
-      }
 
       if (data.reply === '__FALLBACK__') {
         setMessages((prev) => [...prev, { role: 'assistant', content: '__FALLBACK__' }]);
