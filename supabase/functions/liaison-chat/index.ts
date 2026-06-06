@@ -98,29 +98,43 @@ async function generateCompletion(messages: any[], init: boolean): Promise<strin
 
   const llmMessages = init ? messages : normalizeMessagesForLLM(messages);
 
-  const providers = [
-    // 1. Primary: Gemini 2.5 Flash
-    {
-      name: 'Gemini 2.5 Flash',
-      type: 'gemini',
-      model: 'gemini-2.5-flash',
-      apiKey: Deno.env.get('GEMINI_API_KEY'),
-    },
-    // 2. Fallback: Gemini 2.5 Flash Lite
-    {
-      name: 'Gemini 2.5 Flash Lite',
-      type: 'gemini',
-      model: 'gemini-2.5-flash-lite',
-      apiKey: Deno.env.get('GEMINI_API_KEY'),
-    },
-    // 3. Fallback: Gemini 2.0 Flash
-    {
-      name: 'Gemini 2.0 Flash',
-      type: 'gemini',
-      model: 'gemini-2.0-flash',
-      apiKey: Deno.env.get('GEMINI_API_KEY'),
-    },
-    // 4. Fallback: Groq Llama 3.3 70B
+  const geminiKeys = [
+    Deno.env.get('GEMINI_API_KEY'),
+    Deno.env.get('GEMINI_API_KEY_2'),
+    Deno.env.get('GEMINI_API_KEY_3'),
+    Deno.env.get('GEMINI_API_KEY_4'),
+    Deno.env.get('GEMINI_API_KEY_5'),
+  ].filter(Boolean);
+
+  const providers: any[] = [];
+
+  // Add Gemini models for each configured key
+  geminiKeys.forEach((key, index) => {
+    const keyNum = index + 1;
+    providers.push(
+      {
+        name: `Gemini 2.5 Flash (Key ${keyNum})`,
+        type: 'gemini',
+        model: 'gemini-2.5-flash',
+        apiKey: key,
+      },
+      {
+        name: `Gemini 2.5 Flash Lite (Key ${keyNum})`,
+        type: 'gemini',
+        model: 'gemini-2.5-flash-lite',
+        apiKey: key,
+      },
+      {
+        name: `Gemini 2.0 Flash (Key ${keyNum})`,
+        type: 'gemini',
+        model: 'gemini-2.0-flash',
+        apiKey: key,
+      }
+    );
+  });
+
+  // Fallback providers (only used if all Gemini keys are depleted/rate-limited)
+  providers.push(
     {
       name: 'Groq Llama 3.3 70B',
       type: 'openai-compatible',
@@ -128,7 +142,6 @@ async function generateCompletion(messages: any[], init: boolean): Promise<strin
       model: 'llama-3.3-70b-versatile',
       apiKey: Deno.env.get('GROQ_API_KEY'),
     },
-    // 5. Fallback: Groq Gemma 2 9B
     {
       name: 'Groq Gemma 2 9B',
       type: 'openai-compatible',
@@ -136,7 +149,6 @@ async function generateCompletion(messages: any[], init: boolean): Promise<strin
       model: 'gemma2-9b-it',
       apiKey: Deno.env.get('GROQ_API_KEY'),
     },
-    // 6. Fallback: OpenRouter Gemma 2 9B (Free)
     {
       name: 'OpenRouter Gemma 2 9B Free',
       type: 'openai-compatible',
@@ -144,7 +156,6 @@ async function generateCompletion(messages: any[], init: boolean): Promise<strin
       model: 'google/gemma-2-9b-it:free',
       apiKey: Deno.env.get('OPENROUTER_API_KEY'),
     },
-    // 7. Fallback: OpenRouter Llama 3.3 70B (Free)
     {
       name: 'OpenRouter Llama 3.3 70B Free',
       type: 'openai-compatible',
@@ -152,7 +163,6 @@ async function generateCompletion(messages: any[], init: boolean): Promise<strin
       model: 'meta-llama/llama-3.3-70b-instruct:free',
       apiKey: Deno.env.get('OPENROUTER_API_KEY'),
     },
-    // 8. Fallback: Hugging Face Qwen 2.5 72B Instruct
     {
       name: 'Hugging Face Qwen 2.5 72B',
       type: 'openai-compatible',
@@ -160,7 +170,7 @@ async function generateCompletion(messages: any[], init: boolean): Promise<strin
       model: 'Qwen/Qwen2.5-72B-Instruct',
       apiKey: Deno.env.get('HF_API_KEY') || Deno.env.get('HF_ACCESS_TOKEN') || Deno.env.get('Hugging face') || '',
     }
-  ];
+  );
 
   for (const provider of providers) {
     // If provider requires apiKey and it's not present, skip it (except Hugging Face which can be called without a key)
