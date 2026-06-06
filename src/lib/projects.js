@@ -188,6 +188,15 @@ export async function updateReportStatus(id, status) {
   if (error) throw error;
 }
 
+export async function updateReportPinned(id, pinned) {
+  const { error } = await supabase
+    .from('contact_inquiries')
+    .update({ pinned })
+    .eq('id', id);
+
+  if (error) throw error;
+}
+
 // ── Leads status ─────────────────────────────────────────────────────────────
 
 export async function fetchLeads() {
@@ -206,6 +215,15 @@ export async function updateLeadStatus(id, status) {
   const { error } = await supabase
     .from('leads')
     .update({ status })
+    .eq('id', id);
+
+  if (error) throw error;
+}
+
+export async function updateLeadPinned(id, pinned) {
+  const { error } = await supabase
+    .from('leads')
+    .update({ pinned })
     .eq('id', id);
 
   if (error) throw error;

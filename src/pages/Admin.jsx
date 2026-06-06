@@ -13,8 +13,10 @@ import {
   createCategory,
   fetchContactReports,
   updateReportStatus,
+  updateReportPinned,
   fetchLeads,
   updateLeadStatus,
+  updateLeadPinned,
   fetchAdminNotes,
   createAdminNote,
   updateAdminNote,
@@ -29,7 +31,7 @@ import {
   LayoutDashboard, FolderKanban, Users, FileText, StickyNote, Tags,
   ChevronDown, ChevronRight, X, Check, Clock, CheckCircle2,
   Mail, Phone, MapPin, Calendar, DollarSign, ArrowUpRight,
-  MessageSquare, Search, RefreshCw, Menu,
+  MessageSquare, Search, RefreshCw, Menu, Pin,
 } from 'lucide-react';
 
 // ─── Utility ────────────────────────────────────────────────────────────────
@@ -45,12 +47,17 @@ function formatDayKey(dateStr) {
   const d = new Date(dateStr + 'T00:00:00');
   const today = new Date();
   today.setHours(0, 0, 0, 0);
-  const yesterday = new Date(today);
-  yesterday.setDate(yesterday.getDate() - 1);
   if (d.getTime() === today.getTime()) return 'Today';
-  if (d.getTime() === yesterday.getTime()) return 'Yesterday';
   return d.toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
 }
+
+const sortItems = (items) => {
+  return [...items].sort((a, b) => {
+    if (a.pinned && !b.pinned) return -1;
+    if (!a.pinned && b.pinned) return 1;
+    return new Date(b.created_at) - new Date(a.created_at);
+  });
+};
 
 function isToday(dateStr) {
   const d = new Date(dateStr + 'T00:00:00');
@@ -78,24 +85,32 @@ function StatusBadge({ status, onChange }) {
   );
 }
 
-function StatCard({ icon: Icon, label, value, accent = false, sub }) {
+function StatCard({ icon: Icon, label, value, accent = false, sub, onClick, active = false }) {
+  const isClickable = Boolean(onClick);
   return (
     <motion.div
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
-      className={`relative overflow-hidden bg-panel/40 backdrop-blur-sm border border-linen/10 p-5 group hover:border-linen/20 transition-all duration-300 ${
-        accent ? 'border-l-2 border-l-bronze' : ''
+      onClick={onClick}
+      className={`relative overflow-hidden bg-panel/40 backdrop-blur-sm border p-5 group transition-all duration-300 ${
+        isClickable ? 'cursor-pointer' : ''
+      } ${
+        active 
+          ? 'border-bronze bg-bronze/5 shadow-[0_0_15px_rgba(205,162,116,0.05)]' 
+          : accent 
+            ? 'border-linen/10 border-l-2 border-l-bronze hover:border-linen/20' 
+            : 'border-linen/10 hover:border-linen/20'
       }`}
     >
       <div className="absolute inset-0 bg-gradient-to-br from-linen/[0.02] to-transparent pointer-events-none" />
-      <div className="relative">
-        <div className="flex items-center justify-between mb-3">
-          <span className="text-[0.6rem] font-body tracking-[0.2em] uppercase text-stone">{label}</span>
-          <Icon size={15} className="text-stone/60 group-hover:text-bronze transition-colors duration-300" />
-        </div>
-        <p className="font-display text-3xl text-linen font-light tracking-tight">{value}</p>
-        {sub && <p className="font-body text-[0.65rem] text-stone mt-1.5">{sub}</p>}
+      <div className="flex items-center justify-between mb-2">
+        <span className="font-body text-[0.6rem] tracking-widest uppercase text-stone group-hover:text-linen transition-colors">{label}</span>
+        <Icon size={16} className={active ? 'text-bronze' : 'text-stone group-hover:text-linen transition-colors'} />
       </div>
+      <div className="flex items-baseline gap-1.5">
+        <span className="font-display text-2xl lg:text-3xl text-linen font-light">{value}</span>
+      </div>
+      {sub && <p className="font-body text-[0.55rem] text-stone/60 mt-1">{sub}</p>}
     </motion.div>
   );
 }
@@ -560,8 +575,10 @@ function AdminDashboard() {
   const [activeTab, setActiveTab] = useState('overview');
   const [leads, setLeads] = useState([]);
   const [leadsLoading, setLeadsLoading] = useState(false);
+  const [leadsFilter, setLeadsFilter] = useState('All');
   const [reports, setReports] = useState([]);
   const [reportsLoading, setReportsLoading] = useState(false);
+  const [reportsFilter, setReportsFilter] = useState('All');
   const [newCategoryName, setNewCategoryName] = useState('');
   const [savingCategory, setSavingCategory] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -654,12 +671,30 @@ function AdminDashboard() {
     }
   };
 
+  const handleLeadPinnedChange = async (id, pinned) => {
+    try {
+      await updateLeadPinned(id, pinned);
+      setLeads((prev) => prev.map((l) => (l.id === id ? { ...l, pinned } : l)));
+    } catch (err) {
+      alert(err.message || 'Failed to update pinned status');
+    }
+  };
+
   const handleReportStatusChange = async (id, status) => {
     try {
       await updateReportStatus(id, status);
       setReports((prev) => prev.map((r) => (r.id === id ? { ...r, status } : r)));
     } catch (err) {
       alert(err.message || 'Failed to update status');
+    }
+  };
+
+  const handleReportPinnedChange = async (id, pinned) => {
+    try {
+      await updateReportPinned(id, pinned);
+      setReports((prev) => prev.map((r) => (r.id === id ? { ...r, pinned } : r)));
+    } catch (err) {
+      alert(err.message || 'Failed to update pinned status');
     }
   };
 
@@ -688,6 +723,28 @@ function AdminDashboard() {
   const completedLeads = leads.filter((l) => l.status === 'Completed').length;
   const ongoingReports = reports.filter((r) => r.status === 'Ongoing').length;
   const completedReports = reports.filter((r) => r.status === 'Completed').length;
+
+  const filteredLeads = useMemo(() => {
+    return leads.filter(lead => {
+      if (leadsFilter === 'All') return true;
+      return lead.status === leadsFilter;
+    });
+  }, [leads, leadsFilter]);
+
+  const sortedLeads = useMemo(() => {
+    return sortItems(filteredLeads);
+  }, [filteredLeads]);
+
+  const filteredReports = useMemo(() => {
+    return reports.filter(report => {
+      if (reportsFilter === 'All') return true;
+      return report.status === reportsFilter;
+    });
+  }, [reports, reportsFilter]);
+
+  const sortedReports = useMemo(() => {
+    return sortItems(filteredReports);
+  }, [filteredReports]);
 
   // ── Nav items ──
   const navItems = [
@@ -958,24 +1015,44 @@ function AdminDashboard() {
 
               {/* Stats mini row */}
               <div className="grid grid-cols-3 gap-3">
-                <StatCard icon={Users} label="Total Leads" value={leads.length} />
-                <StatCard icon={Clock} label="Ongoing" value={ongoingLeads} />
-                <StatCard icon={CheckCircle2} label="Completed" value={completedLeads} />
+                <StatCard 
+                  icon={Users} 
+                  label="Total Leads" 
+                  value={leads.length} 
+                  onClick={() => setLeadsFilter('All')}
+                  active={leadsFilter === 'All'}
+                />
+                <StatCard 
+                  icon={Clock} 
+                  label="Ongoing" 
+                  value={ongoingLeads} 
+                  onClick={() => setLeadsFilter('Ongoing')}
+                  active={leadsFilter === 'Ongoing'}
+                />
+                <StatCard 
+                  icon={CheckCircle2} 
+                  label="Completed" 
+                  value={completedLeads} 
+                  onClick={() => setLeadsFilter('Completed')}
+                  active={leadsFilter === 'Completed'}
+                />
               </div>
 
               {leadsLoading ? (
                 <div className="flex justify-center py-16"><Loader2 className="animate-spin text-stone/50" size={28} /></div>
-              ) : leads.length === 0 ? (
-                <EmptyState icon={Users} message="No leads captured yet." />
+              ) : filteredLeads.length === 0 ? (
+                <EmptyState icon={Users} message={leads.length === 0 ? "No leads captured yet." : `No ${leadsFilter.toLowerCase()} leads.`} />
               ) : (
                 <div className="space-y-3">
-                  {leads.map((lead, i) => (
+                  {sortedLeads.map((lead, i) => (
                     <motion.div
                       key={lead.id}
                       initial={{ opacity: 0, y: 8 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: i * 0.04 }}
-                      className="bg-panel/20 border border-linen/10 p-5 space-y-4 hover:border-linen/18 transition-all duration-200"
+                      className={`bg-panel/20 border border-linen/10 p-5 space-y-4 hover:border-linen/18 transition-all duration-200 ${
+                        lead.pinned ? 'border-l-2 border-l-bronze bg-panel/30' : ''
+                      }`}
                     >
                       <div className="flex flex-col md:flex-row md:items-start justify-between gap-3">
                         <div className="min-w-0">
@@ -996,7 +1073,20 @@ function AdminDashboard() {
                             </span>
                           </div>
                         </div>
-                        <StatusBadge status={lead.status} onChange={(s) => handleLeadStatusChange(lead.id, s)} />
+                        <div className="flex items-center gap-2 shrink-0">
+                          <button
+                            onClick={() => handleLeadPinnedChange(lead.id, !lead.pinned)}
+                            className={`p-1.5 transition-all duration-200 cursor-pointer border ${
+                              lead.pinned
+                                ? 'bg-bronze/20 border-bronze/40 text-bronze'
+                                : 'border-linen/12 text-stone hover:text-linen hover:border-linen/25'
+                            }`}
+                            title={lead.pinned ? "Unpin Lead" : "Pin Lead"}
+                          >
+                            <Pin size={12} className={lead.pinned ? 'fill-bronze' : ''} />
+                          </button>
+                          <StatusBadge status={lead.status} onChange={(s) => handleLeadStatusChange(lead.id, s)} />
+                        </div>
                       </div>
 
                       <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 py-3 border-t border-b border-linen/8">
@@ -1044,24 +1134,44 @@ function AdminDashboard() {
 
               {/* Stats mini row */}
               <div className="grid grid-cols-3 gap-3">
-                <StatCard icon={FileText} label="Total Reports" value={reports.length} />
-                <StatCard icon={Clock} label="Ongoing" value={ongoingReports} />
-                <StatCard icon={CheckCircle2} label="Completed" value={completedReports} />
+                <StatCard 
+                  icon={FileText} 
+                  label="Total Reports" 
+                  value={reports.length} 
+                  onClick={() => setReportsFilter('All')}
+                  active={reportsFilter === 'All'}
+                />
+                <StatCard 
+                  icon={Clock} 
+                  label="Ongoing" 
+                  value={ongoingReports} 
+                  onClick={() => setReportsFilter('Ongoing')}
+                  active={reportsFilter === 'Ongoing'}
+                />
+                <StatCard 
+                  icon={CheckCircle2} 
+                  label="Completed" 
+                  value={completedReports} 
+                  onClick={() => setReportsFilter('Completed')}
+                  active={reportsFilter === 'Completed'}
+                />
               </div>
 
               {reportsLoading ? (
                 <div className="flex justify-center py-16"><Loader2 className="animate-spin text-stone/50" size={28} /></div>
-              ) : reports.length === 0 ? (
-                <EmptyState icon={FileText} message="No contact form reports yet." />
+              ) : filteredReports.length === 0 ? (
+                <EmptyState icon={FileText} message={reports.length === 0 ? "No contact form reports yet." : `No ${reportsFilter.toLowerCase()} reports.`} />
               ) : (
                 <div className="space-y-3">
-                  {reports.map((report, i) => (
+                  {sortedReports.map((report, i) => (
                     <motion.div
                       key={report.id}
                       initial={{ opacity: 0, y: 8 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: i * 0.04 }}
-                      className="bg-panel/20 border border-linen/10 p-5 hover:border-linen/18 transition-all duration-200"
+                      className={`bg-panel/20 border border-linen/10 p-5 hover:border-linen/18 transition-all duration-200 ${
+                        report.pinned ? 'border-l-2 border-l-bronze bg-panel/30' : ''
+                      }`}
                     >
                       <div className="flex flex-col md:flex-row md:items-start justify-between gap-3 mb-4">
                         <div className="min-w-0">
@@ -1075,7 +1185,20 @@ function AdminDashboard() {
                             </span>
                           </div>
                         </div>
-                        <StatusBadge status={report.status} onChange={(s) => handleReportStatusChange(report.id, s)} />
+                        <div className="flex items-center gap-2 shrink-0">
+                          <button
+                            onClick={() => handleReportPinnedChange(report.id, !report.pinned)}
+                            className={`p-1.5 transition-all duration-200 cursor-pointer border ${
+                              report.pinned
+                                ? 'bg-bronze/20 border-bronze/40 text-bronze'
+                                : 'border-linen/12 text-stone hover:text-linen hover:border-linen/25'
+                            }`}
+                            title={report.pinned ? "Unpin Report" : "Pin Report"}
+                          >
+                            <Pin size={12} className={report.pinned ? 'fill-bronze' : ''} />
+                          </button>
+                          <StatusBadge status={report.status} onChange={(s) => handleReportStatusChange(report.id, s)} />
+                        </div>
                       </div>
 
                       <div className="space-y-3 pt-3 border-t border-linen/8">
