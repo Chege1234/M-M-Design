@@ -9,17 +9,41 @@ const corsHeaders = {
 };
 
 async function sendEmail(to: string, subject: string, html: string) {
-  const res = await fetch('https://api.resend.com/emails', {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${RESEND_API_KEY}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ from: FROM_EMAIL, to, subject, html }),
-  });
-  if (!res.ok) {
-    const err = await res.text();
-    throw new Error(`Resend error: ${err}`);
+  const maxAttempts = 3;
+  let attempts = 0;
+
+  while (attempts < maxAttempts) {
+    attempts++;
+    try {
+      const res = await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${RESEND_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ from: FROM_EMAIL, to, subject, html }),
+      });
+
+      if (res.ok) {
+        return;
+      }
+
+      const err = await res.text();
+      if ((res.status === 429 || res.status >= 500) && attempts < maxAttempts) {
+        const delay = attempts * 1500;
+        console.warn(`Resend failed with status ${res.status} (attempt ${attempts}/${maxAttempts}). Retrying in ${delay}ms... Error:`, err);
+        await new Promise((resolve) => setTimeout(resolve, delay));
+      } else {
+        throw new Error(`Resend error: ${err} (status ${res.status})`);
+      }
+    } catch (err: any) {
+      if (attempts >= maxAttempts) {
+        throw err;
+      }
+      const delay = attempts * 1500;
+      console.warn(`Fetch error on attempt ${attempts}/${maxAttempts}. Retrying in ${delay}ms... Error:`, err.message || err);
+      await new Promise((resolve) => setTimeout(resolve, delay));
+    }
   }
 }
 
