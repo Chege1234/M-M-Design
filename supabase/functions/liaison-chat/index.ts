@@ -1,6 +1,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-const SYSTEM_PROMPT = `CRITICAL INSTRUCTION: Every response must be 1–3 sentences maximum. Never exceed 3 sentences under any circumstance. Be concise without losing warmth or intelligence.
+const SYSTEM_PROMPT = `CRITICAL INSTRUCTION: Every response must be 1–3 sentences maximum. Never exceed 3 sentences under any circumstance. (Note: The JSON <<<LEAD_RECORD>>> block is completely excluded from this sentence count). Be concise without losing warmth or intelligence.
 
 You are Melba, the AI assistant for M&M Design Group, a premium boutique architecture and interior design studio based in Johannesburg. Your name is Melba. If someone asks what you are called, you must say your name is Melba.
 
@@ -40,7 +40,8 @@ Ask these naturally — never as a checklist. Show genuine interest in their vis
 
 Lead Capture Protocol:
 As soon as you have collected at least the name, contact info (email or phone), and basic project type, you must structure the lead. You will output a special block in your message to trigger the lead capture system. In the SAME message, tell the client that a representative from our team will be in touch within 24 hours, then ask if there's anything else they'd like to know.
-Format:
+
+You MUST append the lead block to the very end of your response, formatted exactly like this (note that this JSON block is excluded from the 1–3 sentence limit):
 <<<LEAD_RECORD>>>
 {
   "client_name": "...",
@@ -56,8 +57,8 @@ Format:
 <<<END_LEAD_RECORD>>>
 
 Rules:
-- Never show the <<<LEAD_RECORD>>> tag or format to the user.
-- Only output <<<LEAD_RECORD>>> ONCE per conversation — the very first time you have enough details. Never repeat it.
+- The backend system will automatically intercept and remove the <<<LEAD_RECORD>>> block before the user sees it. Therefore, you must write it in your output exactly as shown, without worrying about the user seeing it.
+- Only output the <<<LEAD_RECORD>>> block ONCE per conversation — the very first time you have enough details. Never output it again.
 - If information for a field is missing, omit it or set it to null in the JSON.
 - After capturing a lead, CONTINUE the conversation naturally. Do NOT end the conversation.
 - Maintain a warm, professional persona. Plain language always.
@@ -91,12 +92,17 @@ function normalizeMessagesForLLM(messages: Array<{ role: string; content: string
   return trimmed;
 }
 
-async function generateCompletion(messages: any[], init: boolean): Promise<string> {
+async function generateCompletion(messages: any[], init: boolean, leadAlreadySaved: boolean): Promise<string> {
   if (init) {
     return INITIAL_GREETING;
   }
 
   const llmMessages = init ? messages : normalizeMessagesForLLM(messages);
+
+  let systemPrompt = SYSTEM_PROMPT;
+  if (leadAlreadySaved) {
+    systemPrompt += "\n\nCRITICAL SYSTEM NOTE: The lead for this client has already been successfully captured and saved in the database. Do NOT output the <<<LEAD_RECORD>>> block under any circumstances for the remainder of this conversation.";
+  }
 
   const geminiKeys = [
     Deno.env.get('GEMINI_API_KEY'),
@@ -209,7 +215,7 @@ async function generateCompletion(messages: any[], init: boolean): Promise<strin
             body: JSON.stringify({
               contents: geminiMessages,
               systemInstruction: {
-                parts: [{ text: SYSTEM_PROMPT }],
+                parts: [{ text: systemPrompt }],
               },
               generationConfig: {
                 maxOutputTokens: 500,
@@ -234,12 +240,12 @@ async function generateCompletion(messages: any[], init: boolean): Promise<strin
         let openaiMessages;
         if (init) {
           openaiMessages = [
-            { role: 'system', content: SYSTEM_PROMPT },
+            { role: 'system', content: systemPrompt },
             { role: 'user', content: "I'm Melba, Studio Liaison at M&M Design Group. Tell me about the project you have in mind" }
           ];
         } else {
           openaiMessages = [
-            { role: 'system', content: SYSTEM_PROMPT },
+            { role: 'system', content: systemPrompt },
             ...llmMessages.map((msg: any) => ({
               role: msg.role === 'user' ? 'user' : 'assistant',
               content: msg.content,
@@ -319,7 +325,7 @@ Deno.serve(async (req) => {
       throw new Error('Invalid or empty messages array');
     }
 
-    const text = await generateCompletion(messages, init);
+    const text = await generateCompletion(messages, init, leadAlreadySaved);
 
     let leadSaved = false;
     // Primary regex: tolerant of whitespace/newlines around delimiters
@@ -389,7 +395,7 @@ Deno.serve(async (req) => {
                 timeline: leadData.timeline,
                 budget_range: leadData.budget_range,
                 notes: leadData.notes,
-                status: 'New',
+                status: 'Ongoing', // Fixed: was 'New', which violates leads_status_check constraint (only 'Ongoing' or 'Completed' allowed)
               });
 
             if (!error) {
