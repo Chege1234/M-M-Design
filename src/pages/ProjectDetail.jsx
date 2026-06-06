@@ -118,7 +118,7 @@ export default function ProjectDetail() {
               className="font-display italic text-linen/70 leading-snug border-l-2 border-bronze pl-6 py-2"
               style={{ fontSize: 'clamp(1.25rem, 2vw, 1.75rem)' }}
             >
-              &ldquo;Precision in every detail, restraint in every decision.&rdquo;
+              &ldquo;Precision in every detail.&rdquo;
             </blockquote>
           </div>
         </div>

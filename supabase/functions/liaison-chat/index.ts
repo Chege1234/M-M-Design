@@ -312,13 +312,40 @@ Deno.serve(async (req) => {
     const text = await generateCompletion(messages, init);
 
     let leadSaved = false;
-    const leadRegex = /<<<LEAD_RECORD>>>([\s\S]*?)<<<END_LEAD_RECORD>>>/;
-    const match = leadAlreadySaved ? null : text.match(leadRegex);
+    // Primary regex: tolerant of whitespace/newlines around delimiters
+    const leadRegex = /<<<\s*LEAD_RECORD\s*>>>([\s\S]*?)<<<\s*END_LEAD_RECORD\s*>>>/;
+    // Also use this for the final cleanup (strip both strict and loose variants)
+    const leadCleanRegex = /<<<\s*LEAD_RECORD\s*>>>[\s\S]*?<<<\s*END_LEAD_RECORD\s*>>>/g;
 
-    if (match) {
+    let leadJsonText: string | null = null;
+
+    if (!leadAlreadySaved) {
+      // Attempt 1: Primary regex extraction
+      const match = text.match(leadRegex);
+      if (match) {
+        leadJsonText = match[1].trim();
+        console.log('Lead block found via primary regex.');
+      } else {
+        // Attempt 2: Fallback — look for a JSON object containing "client_name"
+        // This catches cases where the LLM omits or mangles the delimiters
+        const jsonFallbackRegex = /\{[^{}]*"client_name"\s*:\s*"[^"]*"[^{}]*\}/s;
+        const fallbackMatch = text.match(jsonFallbackRegex);
+        if (fallbackMatch) {
+          leadJsonText = fallbackMatch[0].trim();
+          console.log('Lead block found via fallback JSON extraction (no delimiters).');
+        } else {
+          console.log('No lead block detected in AI response (neither regex nor fallback matched).');
+        }
+      }
+    }
+
+    if (leadJsonText) {
       try {
-        const leadJsonText = match[1].trim();
+        // Strip markdown code fences if present (```json ... ``` or ``` ... ```)
+        leadJsonText = leadJsonText.replace(/^```(?:json)?\s*\n?/i, '').replace(/\n?\s*```$/i, '').trim();
+
         const leadData = JSON.parse(leadJsonText);
+        console.log('Lead data parsed successfully:', JSON.stringify(leadData));
 
         const supabaseUrl = Deno.env.get('SUPABASE_URL') || '';
         const supabaseServiceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '';
@@ -357,6 +384,7 @@ Deno.serve(async (req) => {
 
             if (!error) {
               leadSaved = true;
+              console.log('Lead saved successfully to database.');
             } else {
               console.error('Error inserting lead to database:', error);
             }
@@ -369,7 +397,7 @@ Deno.serve(async (req) => {
       }
     }
 
-    const cleanReply = text.replace(leadRegex, '').trim();
+    const cleanReply = text.replace(leadCleanRegex, '').trim();
 
     return new Response(
       JSON.stringify({

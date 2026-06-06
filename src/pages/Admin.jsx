@@ -772,8 +772,8 @@ function AdminDashboard() {
               initial={{ x: -280 }}
               animate={{ x: 0 }}
               exit={{ x: -280 }}
-              transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-              className="lg:hidden fixed left-0 top-0 bottom-0 w-64 bg-slate border-r border-linen/10 z-50 flex flex-col"
+              transition={{ type: 'tween', duration: 0.2, ease: 'easeOut' }}
+              className="lg:hidden fixed left-0 top-0 bottom-0 w-64 bg-slate border-r border-linen/10 z-50 flex flex-col will-change-transform"
             >
               <button onClick={() => setMobileMenuOpen(false)} className="absolute top-4 right-4 text-stone hover:text-linen cursor-pointer">
                 <X size={18} />
@@ -788,8 +788,8 @@ function AdminDashboard() {
       <main className="flex-1 min-w-0">
         {/* Mobile header */}
         <div className="lg:hidden sticky top-0 z-30 bg-slate/90 backdrop-blur-md border-b border-linen/10 px-4 py-3 flex items-center justify-between">
-          <button onClick={() => setMobileMenuOpen(true)} className="p-1 text-stone hover:text-linen cursor-pointer">
-            <Menu size={20} />
+          <button onClick={() => setMobileMenuOpen(true)} className="p-2.5 -ml-2 text-stone hover:text-linen cursor-pointer active:text-linen" style={{ touchAction: 'manipulation' }}>
+            <Menu size={22} />
           </button>
           <h1 className="font-display text-lg text-linen font-light">M&M Admin</h1>
           <div className="w-7" />

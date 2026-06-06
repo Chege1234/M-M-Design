@@ -11,7 +11,7 @@ const yearsOfPractice = Math.max(4, currentYear - 2022);
 const stats = [
   { label: 'Projects completed', value: 48, suffix: '+' },
   { label: 'Countries', value: 12, suffix: '' },
-  { label: 'Years of practice', value: yearsOfPractice, suffix: '' },
+  { label: 'Years of practice', value: yearsOfPractice, suffix: '+' },
 ];
 
 export default function AboutSection() {
