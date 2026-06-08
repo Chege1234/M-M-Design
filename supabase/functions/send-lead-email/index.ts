@@ -1,6 +1,6 @@
 const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY') || '';
 
-const STUDIO_EMAIL = 'lewiskariuki04@gmail.com';
+const STUDIO_EMAIL = 'madelinesavo64@gmail.com';
 const FROM_EMAIL = 'Melba at M&M Design <melba@mmdesigngroup.site>';
 
 const corsHeaders = {
